@@ -1,0 +1,82 @@
+{
+  "name": "TrainingModule",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Module title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description of the module"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Onboarding",
+        "Core Skills",
+        "Tools & Resources",
+        "Practice Lab",
+        "Assessments"
+      ],
+      "description": "Module category"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "Orientation",
+        "Prospecting",
+        "Qualifying",
+        "Presentation",
+        "Close",
+        "Follow-up"
+      ],
+      "description": "Sales stage this module covers"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "Intro",
+        "Intermediate",
+        "Master"
+      ],
+      "default": "Intro",
+      "description": "Difficulty level"
+    },
+    "estimated_minutes": {
+      "type": "number",
+      "description": "Estimated completion time in minutes"
+    },
+    "learning_objectives": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What skills or behaviors must be demonstrated"
+    },
+    "order": {
+      "type": "number",
+      "description": "Display order within category"
+    },
+    "is_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Required for certification"
+    },
+    "certification_level": {
+      "type": "string",
+      "enum": [
+        "Level 1",
+        "Level 2",
+        "Level 3",
+        "Level 4"
+      ],
+      "description": "Required for this certification level"
+    }
+  },
+  "required": [
+    "title",
+    "category",
+    "stage"
+  ]
+}

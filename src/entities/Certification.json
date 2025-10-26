@@ -1,0 +1,103 @@
+{
+  "name": "Certification",
+  "type": "object",
+  "properties": {
+    "rep_id": {
+      "type": "string",
+      "description": "User ID of the rep"
+    },
+    "rep_name": {
+      "type": "string",
+      "description": "Rep name"
+    },
+    "current_level": {
+      "type": "string",
+      "enum": [
+        "Level 1 - Orientation",
+        "Level 2 - Field Fundamentals",
+        "Level 3 - Independent",
+        "Level 4 - Mentor"
+      ],
+      "default": "Level 1 - Orientation",
+      "description": "Current certification level"
+    },
+    "level_1_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "level_1_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "level_2_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "level_2_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "level_3_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "level_3_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "level_4_completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "level_4_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "modules_completed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs of completed modules"
+    },
+    "total_field_logs": {
+      "type": "number",
+      "default": 0,
+      "description": "Total field logs submitted"
+    },
+    "total_roleplays": {
+      "type": "number",
+      "default": 0,
+      "description": "Total roleplays completed"
+    },
+    "coach_signoffs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "level": {
+            "type": "string"
+          },
+          "coach_name": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Coach sign-off records"
+    },
+    "started_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When rep started training"
+    }
+  },
+  "required": [
+    "rep_id"
+  ]
+}

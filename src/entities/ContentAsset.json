@@ -1,0 +1,110 @@
+{
+  "name": "ContentAsset",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Asset title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description"
+    },
+    "asset_type": {
+      "type": "string",
+      "enum": [
+        "Video",
+        "Slide Deck",
+        "Document",
+        "Image",
+        "Audio",
+        "News Story",
+        "Case Study"
+      ],
+      "description": "Type of asset"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL to the file or resource"
+    },
+    "thumbnail_url": {
+      "type": "string",
+      "description": "Thumbnail image URL"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "Orientation",
+        "Prospecting",
+        "Qualifying",
+        "Presentation",
+        "Close",
+        "Follow-up",
+        "General"
+      ],
+      "description": "Sales stage"
+    },
+    "skill": {
+      "type": "string",
+      "enum": [
+        "Script",
+        "Objection",
+        "Financing",
+        "Roof",
+        "Presentation",
+        "Closing",
+        "General"
+      ],
+      "description": "Primary skill covered"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "Intro",
+        "Intermediate",
+        "Master"
+      ],
+      "description": "Difficulty level"
+    },
+    "resource_type": {
+      "type": "string",
+      "enum": [
+        "Training",
+        "Reference",
+        "Template",
+        "Example"
+      ],
+      "description": "How this resource is used"
+    },
+    "trainer": {
+      "type": "string",
+      "description": "Creator/trainer name"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Duration if video/audio"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Additional tags"
+    },
+    "views": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of views"
+    },
+    "completions": {
+      "type": "number",
+      "default": 0,
+      "description": "Number of completions"
+    }
+  },
+  "required": [
+    "title",
+    "asset_type",
+    "file_url"
+  ]
+}

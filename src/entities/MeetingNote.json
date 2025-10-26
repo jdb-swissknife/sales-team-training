@@ -1,0 +1,76 @@
+{
+  "name": "MeetingNote",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Meeting date"
+    },
+    "topic": {
+      "type": "string",
+      "description": "Meeting topic"
+    },
+    "trainer": {
+      "type": "string",
+      "description": "Trainer/facilitator name"
+    },
+    "objective": {
+      "type": "string",
+      "description": "Meeting objective"
+    },
+    "key_takeaways": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "5 key takeaways"
+    },
+    "resource_links": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "timestamps": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Links to slides/videos with timestamps"
+    },
+    "practice_task": {
+      "type": "string",
+      "description": "Practice task assigned"
+    },
+    "practice_due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Practice task due date"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for categorization"
+    },
+    "attendees": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Meeting attendees"
+    }
+  },
+  "required": [
+    "date",
+    "topic",
+    "trainer"
+  ]
+}

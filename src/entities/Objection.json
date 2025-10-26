@@ -1,0 +1,87 @@
+{
+  "name": "Objection",
+  "type": "object",
+  "properties": {
+    "objection_text": {
+      "type": "string",
+      "description": "The objection statement"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "Price",
+        "Timing",
+        "Decision Maker",
+        "Competition",
+        "Trust",
+        "Technical",
+        "Other"
+      ],
+      "description": "Objection category"
+    },
+    "stage": {
+      "type": "string",
+      "enum": [
+        "Door Approach",
+        "Qualifying",
+        "Presentation",
+        "Close",
+        "Follow-up"
+      ],
+      "description": "When this objection typically occurs"
+    },
+    "rebuttal_script": {
+      "type": "string",
+      "description": "Short rebuttal script"
+    },
+    "best_practices": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Best practice tips"
+    },
+    "example_responses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Multiple example responses"
+    },
+    "related_media_url": {
+      "type": "string",
+      "description": "Link to video or slide showing this handled well"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "Easy",
+        "Medium",
+        "Hard"
+      ],
+      "description": "How difficult to overcome"
+    },
+    "frequency": {
+      "type": "string",
+      "enum": [
+        "Very Common",
+        "Common",
+        "Occasional",
+        "Rare"
+      ],
+      "description": "How often encountered"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Additional tags"
+    }
+  },
+  "required": [
+    "objection_text",
+    "category",
+    "rebuttal_script"
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "name": "Lesson",
+  "type": "object",
+  "properties": {
+    "module_id": {
+      "type": "string",
+      "description": "Reference to TrainingModule"
+    },
+    "title": {
+      "type": "string",
+      "description": "Lesson title"
+    },
+    "content_type": {
+      "type": "string",
+      "enum": [
+        "Video",
+        "Slide Deck",
+        "Article",
+        "Script",
+        "Checklist"
+      ],
+      "description": "Type of content"
+    },
+    "content_url": {
+      "type": "string",
+      "description": "URL to video, slide deck, or file"
+    },
+    "content_text": {
+      "type": "string",
+      "description": "Text content or transcript"
+    },
+    "duration_minutes": {
+      "type": "number",
+      "description": "Duration in minutes"
+    },
+    "key_takeaways": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "3-6 key points from this lesson"
+    },
+    "timestamps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "time": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Video timestamp highlights"
+    },
+    "practice_task": {
+      "type": "string",
+      "description": "Assignment or practice task for this lesson"
+    },
+    "order": {
+      "type": "number",
+      "description": "Order within module"
+    }
+  },
+  "required": [
+    "module_id",
+    "title",
+    "content_type"
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "name": "Assignment",
+  "type": "object",
+  "properties": {
+    "rep_id": {
+      "type": "string",
+      "description": "Assigned to rep user ID"
+    },
+    "rep_name": {
+      "type": "string",
+      "description": "Rep name"
+    },
+    "assigned_by": {
+      "type": "string",
+      "description": "Coach/trainer who assigned"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Module",
+        "Lesson",
+        "Roleplay",
+        "Field Task",
+        "Assessment"
+      ],
+      "description": "Type of assignment"
+    },
+    "module_id": {
+      "type": "string",
+      "description": "Reference to module if applicable"
+    },
+    "lesson_id": {
+      "type": "string",
+      "description": "Reference to lesson if applicable"
+    },
+    "title": {
+      "type": "string",
+      "description": "Assignment title"
+    },
+    "description": {
+      "type": "string",
+      "description": "What needs to be done"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Due date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Not Started",
+        "In Progress",
+        "Submitted",
+        "Completed"
+      ],
+      "default": "Not Started",
+      "description": "Completion status"
+    },
+    "submission_url": {
+      "type": "string",
+      "description": "Link to submitted work"
+    },
+    "submission_notes": {
+      "type": "string",
+      "description": "Rep's submission notes"
+    },
+    "completed_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date completed"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low"
+      ],
+      "default": "Medium",
+      "description": "Priority level"
+    }
+  },
+  "required": [
+    "rep_id",
+    "type",
+    "title",
+    "due_date"
+  ]
+}
