@@ -4,6 +4,7 @@ import TrainingModules from './pages/TrainingModules';
 import PracticeLab from './pages/PracticeLab';
 import ObjectionLibrary from './pages/ObjectionLibrary';
 import MyProgress from './pages/MyProgress';
+import CoachReview from './pages/CoachReview';
 import Layout from './Layout.jsx';
 
 
@@ -14,6 +15,7 @@ export const PAGES = {
     "PracticeLab": PracticeLab,
     "ObjectionLibrary": ObjectionLibrary,
     "MyProgress": MyProgress,
+    "CoachReview": CoachReview,
 }
 
 export const pagesConfig = {
