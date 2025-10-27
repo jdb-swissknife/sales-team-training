@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -274,9 +275,11 @@ export default function ModuleDetail() {
             <>
               <DialogHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  <Badge variant="outline">
-                    {contentTypeIcons[selectedLesson.content_type] && 
-                      React.createElement(contentTypeIcons[selectedLesson.content_type], { className: "w-3 h-3 mr-1" })}
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    {contentTypeIcons[selectedLesson.content_type] && (() => {
+                      const IconComponent = contentTypeIcons[selectedLesson.content_type];
+                      return <IconComponent className="w-3 h-3" />;
+                    })()}
                     {selectedLesson.content_type}
                   </Badge>
                   {selectedLesson.duration_minutes && (
