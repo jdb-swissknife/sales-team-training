@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +17,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function TrainingModules() {
+  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const { data: modules = [] } = useQuery({
@@ -42,6 +45,10 @@ export default function TrainingModules() {
     "Presentation": "bg-green-100 text-green-700",
     "Close": "bg-orange-100 text-orange-700",
     "Follow-up": "bg-pink-100 text-pink-700"
+  };
+
+  const handleStartModule = (moduleId) => {
+    navigate(createPageUrl("ModuleDetail") + `?id=${moduleId}`);
   };
 
   return (
@@ -137,7 +144,10 @@ export default function TrainingModules() {
                 </div>
               )}
 
-              <Button className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 group-hover:shadow-lg transition-all">
+              <Button 
+                onClick={() => handleStartModule(module.id)}
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 group-hover:shadow-lg transition-all"
+              >
                 <PlayCircle className="w-4 h-4 mr-2" />
                 Start Module
               </Button>

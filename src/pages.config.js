@@ -6,6 +6,7 @@ import ObjectionLibrary from './pages/ObjectionLibrary';
 import MyProgress from './pages/MyProgress';
 import CoachReview from './pages/CoachReview';
 import Analytics from './pages/Analytics';
+import ModuleDetail from './pages/ModuleDetail';
 import Layout from './Layout.jsx';
 
 
@@ -18,6 +19,7 @@ export const PAGES = {
     "MyProgress": MyProgress,
     "CoachReview": CoachReview,
     "Analytics": Analytics,
+    "ModuleDetail": ModuleDetail,
 }
 
 export const pagesConfig = {
