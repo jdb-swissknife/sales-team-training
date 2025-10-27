@@ -77,7 +77,8 @@ export default function ModuleDetail() {
     "Slide Deck": FileText,
     "Article": BookOpen,
     "Script": FileText,
-    "Checklist": CheckCircle2
+    "Checklist": CheckCircle2,
+    "Document": FileText
   };
 
   const stageColors = {
@@ -270,7 +271,7 @@ export default function ModuleDetail() {
 
       {/* Lesson Content Dialog */}
       <Dialog open={!!selectedLesson} onOpenChange={() => setSelectedLesson(null)}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
           {selectedLesson && (
             <>
               <DialogHeader>
@@ -293,8 +294,19 @@ export default function ModuleDetail() {
               </DialogHeader>
 
               <div className="space-y-6">
-                {/* Content URL */}
-                {selectedLesson.content_url && (
+                {/* PDF Viewer for Document content */}
+                {selectedLesson.content_url && selectedLesson.content_type === 'Document' && selectedLesson.content_url.toLowerCase().endsWith('.pdf') && (
+                  <div className="w-full h-[600px] border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+                    <iframe
+                      src={selectedLesson.content_url}
+                      className="w-full h-full"
+                      title={selectedLesson.title}
+                    />
+                  </div>
+                )}
+
+                {/* Content URL Link (for non-PDF or non-Document types) */}
+                {selectedLesson.content_url && !(selectedLesson.content_type === 'Document' && selectedLesson.content_url.toLowerCase().endsWith('.pdf')) && (
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
                     <a 
                       href={selectedLesson.content_url}
