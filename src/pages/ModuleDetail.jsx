@@ -296,12 +296,26 @@ export default function ModuleDetail() {
               <div className="space-y-6">
                 {/* PDF Viewer for Document content */}
                 {selectedLesson.content_url && selectedLesson.content_type === 'Document' && selectedLesson.content_url.toLowerCase().endsWith('.pdf') && (
-                  <div className="w-full h-[600px] border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
-                    <iframe
-                      src={selectedLesson.content_url}
-                      className="w-full h-full"
-                      title={selectedLesson.title}
-                    />
+                  <div className="space-y-3">
+                    <div className="w-full h-[700px] border-2 border-slate-300 rounded-lg overflow-hidden bg-slate-100 shadow-inner">
+                      <iframe
+                        src={`https://docs.google.com/viewer?url=${encodeURIComponent(selectedLesson.content_url)}&embedded=true`}
+                        className="w-full h-full"
+                        title={selectedLesson.title}
+                        frameBorder="0"
+                      />
+                    </div>
+                    <div className="flex items-center justify-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                      <a 
+                        href={selectedLesson.content_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium text-sm"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Open PDF in New Tab (if viewer doesn't load)
+                      </a>
+                    </div>
                   </div>
                 )}
 
