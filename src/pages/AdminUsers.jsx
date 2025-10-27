@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -304,7 +305,10 @@ export default function AdminUsers() {
               Invite New User
             </DialogTitle>
             <DialogDescription>
-              Send an invitation email. The user will create their own password when they accept.
+              Send an invitation email to grant access. After clicking the invite link, they should set their password. 
+              <strong className="block mt-2 text-blue-600">
+                Important: If they don't see a password setup screen, tell them to use "Forgot Password" on the login page.
+              </strong>
             </DialogDescription>
           </DialogHeader>
 
@@ -349,6 +353,16 @@ export default function AdminUsers() {
                 {inviteRole === 'coach' && "Can review submissions and access analytics"}
                 {inviteRole === 'admin' && "Full access to all features and user management"}
               </p>
+            </div>
+
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-xs text-amber-900 font-medium mb-1">📧 Instructions for New User:</p>
+              <ol className="text-xs text-amber-800 space-y-1 ml-4 list-decimal">
+                <li>Check email for invitation link</li>
+                <li>Click the link to activate account</li>
+                <li>If no password screen appears, go to login page and click "Forgot Password"</li>
+                <li>Set password and log in</li>
+              </ol>
             </div>
           </div>
 
