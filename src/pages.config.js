@@ -7,6 +7,7 @@ import MyProgress from './pages/MyProgress';
 import CoachReview from './pages/CoachReview';
 import Analytics from './pages/Analytics';
 import ModuleDetail from './pages/ModuleDetail';
+import AdminUsers from './pages/AdminUsers';
 import Layout from './Layout.jsx';
 
 
@@ -20,6 +21,7 @@ export const PAGES = {
     "CoachReview": CoachReview,
     "Analytics": Analytics,
     "ModuleDetail": ModuleDetail,
+    "AdminUsers": AdminUsers,
 }
 
 export const pagesConfig = {

@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
@@ -78,6 +79,12 @@ const navigationItems = [
     url: createPageUrl("Analytics"),
     icon: BarChart3,
     roles: ["coach", "admin"]
+  },
+  {
+    title: "User Management",
+    url: createPageUrl("AdminUsers"),
+    icon: Users,
+    roles: ["admin"]
   }
 ];
 
