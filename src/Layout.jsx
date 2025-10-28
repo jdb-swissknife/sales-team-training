@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
@@ -36,37 +35,37 @@ const navigationItems = [
     title: "Dashboard",
     url: createPageUrl("Dashboard"),
     icon: LayoutDashboard,
-    roles: ["rep", "coach", "admin"]
+    roles: ["rep", "user", "coach", "admin"]
   },
   {
     title: "Training Modules",
     url: createPageUrl("TrainingModules"),
     icon: BookOpen,
-    roles: ["rep", "coach", "admin"]
+    roles: ["rep", "user", "coach", "admin"]
   },
   {
     title: "Field Logs",
     url: createPageUrl("FieldLogs"),
     icon: Clipboard,
-    roles: ["rep", "coach", "admin"]
+    roles: ["rep", "user", "coach", "admin"]
   },
   {
     title: "Practice Lab",
     url: createPageUrl("PracticeLab"),
     icon: MessageSquare,
-    roles: ["rep", "coach", "admin"]
+    roles: ["rep", "user", "coach", "admin"]
   },
   {
     title: "Objection Library",
     url: createPageUrl("ObjectionLibrary"),
     icon: Library,
-    roles: ["rep", "coach", "admin"]
+    roles: ["rep", "user", "coach", "admin"]
   },
   {
     title: "My Progress",
     url: createPageUrl("MyProgress"),
     icon: Award,
-    roles: ["rep"]
+    roles: ["rep", "user"]
   },
   {
     title: "Coach Review",
@@ -108,7 +107,7 @@ export default function Layout({ children }) {
     base44.auth.logout();
   };
 
-  const userRole = user?.role || "rep";
+  const userRole = user?.role || "user";
   const filteredNavItems = navigationItems.filter(item => 
     item.roles.includes(userRole)
   );
