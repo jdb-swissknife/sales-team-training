@@ -294,6 +294,41 @@ export default function ModuleDetail() {
               </DialogHeader>
 
               <div className="space-y-6">
+                {/* Content Text */}
+                {selectedLesson.content_text && (
+                  <div className="prose prose-slate max-w-none">
+                    <ReactMarkdown>{selectedLesson.content_text}</ReactMarkdown>
+                  </div>
+                )}
+
+                {/* Key Takeaways */}
+                {selectedLesson.key_takeaways && selectedLesson.key_takeaways.length > 0 && (
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-100">
+                    <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
+                      <Target className="w-5 h-5" />
+                      Key Takeaways
+                    </h3>
+                    <ul className="space-y-2">
+                      {selectedLesson.key_takeaways.map((takeaway, idx) => (
+                        <li key={idx} className="flex items-start gap-2 text-green-800">
+                          <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
+                          <span>{takeaway}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Practice Task */}
+                {selectedLesson.practice_task && (
+                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
+                    <h3 className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
+                      📝 Practice Task
+                    </h3>
+                    <p className="text-orange-800">{selectedLesson.practice_task}</p>
+                  </div>
+                )}
+
                 {/* PDF Viewer for Document content */}
                 {selectedLesson.content_url && selectedLesson.content_type === 'Document' && selectedLesson.content_url.toLowerCase().endsWith('.pdf') && (
                   <div className="space-y-3">
@@ -334,31 +369,6 @@ export default function ModuleDetail() {
                   </div>
                 )}
 
-                {/* Content Text */}
-                {selectedLesson.content_text && (
-                  <div className="prose prose-slate max-w-none">
-                    <ReactMarkdown>{selectedLesson.content_text}</ReactMarkdown>
-                  </div>
-                )}
-
-                {/* Key Takeaways */}
-                {selectedLesson.key_takeaways && selectedLesson.key_takeaways.length > 0 && (
-                  <div className="p-4 bg-green-50 rounded-lg border border-green-100">
-                    <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
-                      <Target className="w-5 h-5" />
-                      Key Takeaways
-                    </h3>
-                    <ul className="space-y-2">
-                      {selectedLesson.key_takeaways.map((takeaway, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-green-800">
-                          <CheckCircle2 className="w-5 h-5 mt-0.5 flex-shrink-0" />
-                          <span>{takeaway}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
                 {/* Timestamps */}
                 {selectedLesson.timestamps && selectedLesson.timestamps.length > 0 && (
                   <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
@@ -371,16 +381,6 @@ export default function ModuleDetail() {
                         </div>
                       ))}
                     </div>
-                  </div>
-                )}
-
-                {/* Practice Task */}
-                {selectedLesson.practice_task && (
-                  <div className="p-4 bg-orange-50 rounded-lg border border-orange-100">
-                    <h3 className="font-semibold text-orange-900 mb-2 flex items-center gap-2">
-                      📝 Practice Task
-                    </h3>
-                    <p className="text-orange-800">{selectedLesson.practice_task}</p>
                   </div>
                 )}
 
