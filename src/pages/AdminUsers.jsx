@@ -83,15 +83,13 @@ export default function AdminUsers() {
 
     setInviting(true);
     try {
-      // Using base44's built-in user invite system
-      // This will send an email to the user with a link to set their password
       await base44.auth.inviteUser({
         email: inviteEmail,
         full_name: inviteName,
         role: inviteRole
       });
       
-      alert(`Invitation sent to ${inviteEmail}!`);
+      alert(`User ${inviteEmail} has been invited!`);
       setShowInviteDialog(false);
       setInviteEmail("");
       setInviteName("");
@@ -99,7 +97,7 @@ export default function AdminUsers() {
       queryClient.invalidateQueries(['allUsers']);
     } catch (error) {
       console.error("Invite failed:", error);
-      alert(`Failed to send invite: ${error.message || 'Unknown error'}`);
+      alert(`Failed to invite user: ${error.message || 'Unknown error'}`);
     } finally {
       setInviting(false);
     }
@@ -305,10 +303,7 @@ export default function AdminUsers() {
               Invite New User
             </DialogTitle>
             <DialogDescription>
-              Send an invitation email to grant access. After clicking the invite link, they should set their password. 
-              <strong className="block mt-2 text-blue-600">
-                Important: If they don't see a password setup screen, tell them to use "Forgot Password" on the login page.
-              </strong>
+              Add a new user to the system. They will receive login credentials via email.
             </DialogDescription>
           </DialogHeader>
 
@@ -353,16 +348,6 @@ export default function AdminUsers() {
                 {inviteRole === 'coach' && "Can review submissions and access analytics"}
                 {inviteRole === 'admin' && "Full access to all features and user management"}
               </p>
-            </div>
-
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <p className="text-xs text-amber-900 font-medium mb-1">📧 Instructions for New User:</p>
-              <ol className="text-xs text-amber-800 space-y-1 ml-4 list-decimal">
-                <li>Check email for invitation link</li>
-                <li>Click the link to activate account</li>
-                <li>If no password screen appears, go to login page and click "Forgot Password"</li>
-                <li>Set password and log in</li>
-              </ol>
             </div>
           </div>
 
