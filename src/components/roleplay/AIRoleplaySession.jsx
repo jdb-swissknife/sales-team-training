@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { 
   Mic, 
   MicOff, 
@@ -14,7 +15,9 @@ import {
   TrendingUp,
   AlertCircle,
   CheckCircle2,
-  RotateCcw
+  RotateCcw,
+  Send,
+  Keyboard
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -31,45 +34,26 @@ export default function AIRoleplaySession({ onComplete }) {
   const [difficulty, setDifficulty] = useState("medium");
   const [personality, setPersonality] = useState("skeptical");
   const [conversation, setConversation] = useState([]);
-  const [isListening, setIsListening] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [sessionComplete, setSessionComplete] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
+  const [useTextInput, setUseTextInput] = useState(false);
+  const [textInput, setTextInput] = useState("");
   
-  const recognitionRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
   const synthesisRef = useRef(null);
 
   useEffect(() => {
-    // Initialize Speech Recognition
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      
-      recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        handleUserResponse(transcript);
-      };
-      
-      recognitionRef.current.onerror = (event) => {
-        console.error("Speech recognition error:", event.error);
-        setIsListening(false);
-      };
-      
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
-    }
-
-    // Initialize Speech Synthesis
+    // Initialize Speech Synthesis for text-to-speech
     synthesisRef.current = window.speechSynthesis;
 
     return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.stop();
       }
       if (synthesisRef.current) {
         synthesisRef.current.cancel();
@@ -180,8 +164,6 @@ Respond as the homeowner:`;
   };
 
   const handleUserResponse = async (text) => {
-    setIsListening(false);
-    
     const userMessage = {
       role: "user",
       text: text,
@@ -189,6 +171,7 @@ Respond as the homeowner:`;
     };
     
     setConversation(prev => [...prev, userMessage]);
+    setTextInput("");
     
     // Check if we should end the session (after 8-12 exchanges)
     if (conversation.length >= 16) {
@@ -219,26 +202,80 @@ Respond as the homeowner:`;
     }
   };
 
-  const startListening = () => {
-    if (!recognitionRef.current) {
-      alert("Speech recognition is not supported in your browser. Please use Chrome or Edge.");
-      return;
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+
+      mediaRecorderRef.current.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorderRef.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach(track => track.stop());
+        
+        // Transcribe using Whisper-like service
+        await transcribeAudio(audioBlob);
+      };
+
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+    } catch (error) {
+      console.error("Microphone access error:", error);
+      alert("Could not access microphone. Please use text input instead or check your browser permissions.");
+      setUseTextInput(true);
     }
-    
-    if (isSpeaking) {
-      synthesisRef.current.cancel();
-      setIsSpeaking(false);
-    }
-    
-    setIsListening(true);
-    recognitionRef.current.start();
   };
 
-  const stopListening = () => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
     }
-    setIsListening(false);
+  };
+
+  const transcribeAudio = async (audioBlob) => {
+    setIsProcessing(true);
+    
+    try {
+      // Convert blob to base64 or upload to get URL
+      const file = new File([audioBlob], 'recording.webm', { type: 'audio/webm' });
+      
+      // Upload the audio file
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      
+      // Use LLM with audio file to transcribe
+      // Note: This is a workaround - ideally you'd have a dedicated Whisper integration
+      const transcription = await base44.integrations.Core.InvokeLLM({
+        prompt: "Transcribe this audio recording of a sales conversation. Return only the exact words spoken, nothing else.",
+        file_urls: file_url
+      });
+      
+      setIsProcessing(false);
+      
+      if (transcription && transcription.trim()) {
+        handleUserResponse(transcription);
+      } else {
+        alert("Could not transcribe audio. Please try again or use text input.");
+      }
+    } catch (error) {
+      console.error("Transcription error:", error);
+      setIsProcessing(false);
+      alert("Transcription failed. Please use text input instead.");
+      setUseTextInput(true);
+    }
+  };
+
+  const handleTextSubmit = (e) => {
+    e.preventDefault();
+    if (textInput.trim()) {
+      handleUserResponse(textInput.trim());
+    }
   };
 
   const speakText = (text) => {
@@ -258,6 +295,14 @@ Respond as the homeowner:`;
 
   const endSession = async () => {
     setSessionComplete(true);
+    
+    // Stop any ongoing recording or speech
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
+    }
+    if (synthesisRef.current) {
+      synthesisRef.current.cancel();
+    }
     
     // Generate feedback using AI
     const feedbackPrompt = `You are a solar sales coach reviewing a practice roleplay session. Analyze this conversation and provide constructive feedback.
@@ -332,11 +377,15 @@ Provide feedback in the following JSON format:
     setConversation([]);
     setSessionComplete(false);
     setFeedback(null);
+    setTextInput("");
+    setUseTextInput(false);
+    setIsRecording(false);
+    
     if (synthesisRef.current) {
       synthesisRef.current.cancel();
     }
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      mediaRecorderRef.current.stop();
     }
   };
 
@@ -349,7 +398,7 @@ Provide feedback in the following JSON format:
             AI Roleplay Practice
           </CardTitle>
           <p className="text-sm text-slate-600">
-            Practice your pitch with an AI-powered homeowner. Use your voice to have a realistic conversation.
+            Practice your pitch with an AI-powered homeowner. Use voice recording or text to have a realistic conversation.
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -410,7 +459,7 @@ Provide feedback in the following JSON format:
                   <VolumeX className="w-5 h-5 text-slate-400" />
                 )}
                 <span className="text-sm font-medium text-slate-700">
-                  Voice Audio
+                  Voice Audio (Homeowner speaks)
                 </span>
               </div>
               <Button
@@ -438,7 +487,7 @@ Provide feedback in the following JSON format:
               <div className="text-sm text-amber-900">
                 <p className="font-medium mb-1">Tips for Success:</p>
                 <ul className="list-disc list-inside space-y-1 text-xs">
-                  <li>Speak clearly and naturally</li>
+                  <li>Use voice recording or text input to respond</li>
                   <li>Use the 5-step framework</li>
                   <li>Handle objections with ARM technique</li>
                   <li>Stay in character throughout</li>
@@ -642,63 +691,108 @@ Provide feedback in the following JSON format:
             ))}
             {isProcessing && (
               <div className="flex items-center gap-2 text-sm text-slate-600 p-3">
-                <div className="animate-pulse">Homeowner is thinking...</div>
+                <div className="animate-pulse">
+                  {isRecording ? "Transcribing your response..." : "Homeowner is thinking..."}
+                </div>
               </div>
             )}
           </div>
 
-          {/* Voice Controls */}
-          <div className="flex items-center justify-center gap-4 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
-            {!isListening && !isProcessing && !isSpeaking ? (
+          {/* Input Controls */}
+          <div className="space-y-3">
+            {/* Toggle between voice and text */}
+            <div className="flex items-center justify-center gap-2">
               <Button
-                onClick={startListening}
-                size="lg"
-                className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg"
+                variant={useTextInput ? "outline" : "default"}
+                size="sm"
+                onClick={() => setUseTextInput(false)}
               >
-                <Mic className="w-6 h-6 mr-2" />
-                Press to Speak
+                <Mic className="w-4 h-4 mr-1" />
+                Voice
               </Button>
-            ) : isListening ? (
               <Button
-                onClick={stopListening}
-                size="lg"
-                className="bg-gradient-to-r from-red-600 to-red-700 animate-pulse shadow-lg"
+                variant={useTextInput ? "default" : "outline"}
+                size="sm"
+                onClick={() => setUseTextInput(true)}
               >
-                <MicOff className="w-6 h-6 mr-2" />
-                Listening... (Click to Stop)
+                <Keyboard className="w-4 h-4 mr-1" />
+                Text
               </Button>
-            ) : isSpeaking ? (
-              <div className="flex items-center gap-3 text-purple-700">
-                <Volume2 className="w-6 h-6 animate-pulse" />
-                <span className="font-medium">Homeowner is speaking...</span>
-              </div>
+            </div>
+
+            {useTextInput ? (
+              /* Text Input */
+              <form onSubmit={handleTextSubmit} className="flex gap-2">
+                <Input
+                  value={textInput}
+                  onChange={(e) => setTextInput(e.target.value)}
+                  placeholder="Type your response..."
+                  disabled={isProcessing}
+                  className="flex-1"
+                />
+                <Button
+                  type="submit"
+                  disabled={!textInput.trim() || isProcessing}
+                  className="bg-gradient-to-r from-purple-600 to-purple-700"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </form>
             ) : (
-              <div className="flex items-center gap-3 text-blue-700">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700"></div>
-                <span className="font-medium">Processing your response...</span>
+              /* Voice Recording */
+              <div className="flex items-center justify-center gap-4 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
+                {!isRecording && !isProcessing && !isSpeaking ? (
+                  <Button
+                    onClick={startRecording}
+                    size="lg"
+                    className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 shadow-lg"
+                  >
+                    <Mic className="w-6 h-6 mr-2" />
+                    Hold to Record
+                  </Button>
+                ) : isRecording ? (
+                  <Button
+                    onClick={stopRecording}
+                    size="lg"
+                    className="bg-gradient-to-r from-red-600 to-red-700 animate-pulse shadow-lg"
+                  >
+                    <MicOff className="w-6 h-6 mr-2" />
+                    Recording... (Click to Stop)
+                  </Button>
+                ) : isSpeaking ? (
+                  <div className="flex items-center gap-3 text-purple-700">
+                    <Volume2 className="w-6 h-6 animate-pulse" />
+                    <span className="font-medium">Homeowner is speaking...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 text-blue-700">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-700"></div>
+                    <span className="font-medium">Processing...</span>
+                  </div>
+                )}
               </div>
             )}
-          </div>
 
-          {/* Audio Toggle */}
-          <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setAudioEnabled(!audioEnabled)}
-            >
-              {audioEnabled ? (
-                <>
-                  <Volume2 className="w-4 h-4 mr-1" />
-                  Audio On
-                </>
-              ) : (
-                <>
-                  <VolumeX className="w-4 h-4 mr-1" />
-                  Audio Off
-                </>
-              )}
-            </Button>
+            {/* Audio Toggle */}
+            <div className="flex items-center justify-center gap-2 text-sm text-slate-600">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAudioEnabled(!audioEnabled)}
+              >
+                {audioEnabled ? (
+                  <>
+                    <Volume2 className="w-4 h-4 mr-1" />
+                    Homeowner Audio On
+                  </>
+                ) : (
+                  <>
+                    <VolumeX className="w-4 h-4 mr-1" />
+                    Homeowner Audio Off
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
