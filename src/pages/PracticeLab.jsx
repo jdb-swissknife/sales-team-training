@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -23,10 +24,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import AIRoleplaySession from "../components/roleplay/AIRoleplaySession";
 
 export default function PracticeLab() {
   const [user, setUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [showAIRoleplay, setShowAIRoleplay] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -120,21 +123,46 @@ export default function PracticeLab() {
     "Follow-up"
   ];
 
+  if (showAIRoleplay) {
+    return (
+      <div className="p-4 md:p-8 space-y-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button
+            variant="outline"
+            onClick={() => setShowAIRoleplay(false)}
+          >
+            ← Back to Practice Lab
+          </Button>
+        </div>
+        <AIRoleplaySession onComplete={() => setShowAIRoleplay(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Practice Lab</h1>
-          <p className="text-slate-600 mt-1">Submit roleplays and get coach feedback</p>
+          <p className="text-slate-600 mt-1">Practice with AI or submit roleplays for coach feedback</p>
         </div>
-        <Button 
-          onClick={() => setShowForm(true)}
-          className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/30"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Submit Roleplay
-        </Button>
+        <div className="flex gap-3">
+          <Button 
+            onClick={() => setShowAIRoleplay(true)}
+            className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 shadow-lg shadow-purple-500/30"
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            AI Practice
+          </Button>
+          <Button 
+            onClick={() => setShowForm(true)}
+            className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/30"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Submit Roleplay
+          </Button>
+        </div>
       </div>
 
       {/* Stats Overview */}
@@ -173,12 +201,40 @@ export default function PracticeLab() {
         </Card>
       </div>
 
+      {/* AI Practice Promo Card */}
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-600 to-purple-700 text-white overflow-hidden">
+        <CardContent className="pt-6 relative">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex-1">
+              <h3 className="text-xl font-bold mb-2">🎯 Practice with AI Homeowners</h3>
+              <p className="text-purple-100 text-sm mb-4">
+                Have realistic voice conversations with AI-powered homeowners. Get instant feedback on your pitch, objection handling, and closing techniques.
+              </p>
+              <ul className="space-y-1 text-sm text-purple-100">
+                <li>✓ Voice-powered realistic conversations</li>
+                <li>✓ Multiple personality types and difficulty levels</li>
+                <li>✓ Instant AI feedback on your performance</li>
+                <li>✓ Practice anytime, unlimited sessions</li>
+              </ul>
+            </div>
+            <Button
+              onClick={() => setShowAIRoleplay(true)}
+              size="lg"
+              className="bg-white text-purple-600 hover:bg-purple-50 shadow-xl"
+            >
+              Start AI Practice
+            </Button>
+          </div>
+          <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500 rounded-full opacity-20"></div>
+        </CardContent>
+      </Card>
+
       {/* Roleplay History */}
       <Card className="border-0 shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <MessageSquare className="w-5 h-5" />
-            Your Roleplays
+            Your Submitted Roleplays
           </CardTitle>
         </CardHeader>
         <CardContent>
