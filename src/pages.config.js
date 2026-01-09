@@ -1,31 +1,37 @@
+import AdminUsers from './pages/AdminUsers';
+import Analytics from './pages/Analytics';
+import CoachReview from './pages/CoachReview';
 import Dashboard from './pages/Dashboard';
 import FieldLogs from './pages/FieldLogs';
-import TrainingModules from './pages/TrainingModules';
-import PracticeLab from './pages/PracticeLab';
-import ObjectionLibrary from './pages/ObjectionLibrary';
-import MyProgress from './pages/MyProgress';
-import CoachReview from './pages/CoachReview';
-import Analytics from './pages/Analytics';
+import Home from './pages/Home';
 import ModuleDetail from './pages/ModuleDetail';
-import AdminUsers from './pages/AdminUsers';
-import Layout from './Layout.jsx';
+import MyProgress from './pages/MyProgress';
+import ObjectionLibrary from './pages/ObjectionLibrary';
+import PracticeLab from './pages/PracticeLab';
+import TrainingModules from './pages/TrainingModules';
+import PlatformDashboard from './pages/PlatformDashboard';
+import CompanyDetail from './pages/CompanyDetail';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "AdminUsers": AdminUsers,
+    "Analytics": Analytics,
+    "CoachReview": CoachReview,
     "Dashboard": Dashboard,
     "FieldLogs": FieldLogs,
-    "TrainingModules": TrainingModules,
-    "PracticeLab": PracticeLab,
-    "ObjectionLibrary": ObjectionLibrary,
-    "MyProgress": MyProgress,
-    "CoachReview": CoachReview,
-    "Analytics": Analytics,
+    "Home": Home,
     "ModuleDetail": ModuleDetail,
-    "AdminUsers": AdminUsers,
+    "MyProgress": MyProgress,
+    "ObjectionLibrary": ObjectionLibrary,
+    "PracticeLab": PracticeLab,
+    "TrainingModules": TrainingModules,
+    "PlatformDashboard": PlatformDashboard,
+    "CompanyDetail": CompanyDetail,
 }
 
 export const pagesConfig = {
     mainPage: "Dashboard",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };
