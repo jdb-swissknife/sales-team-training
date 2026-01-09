@@ -16,7 +16,8 @@ import {
   TrendingUp,
   Settings,
   ExternalLink,
-  Shield
+  Shield,
+  BookOpen
 } from "lucide-react";
 import {
   Dialog,
@@ -264,7 +265,6 @@ export default function PlatformDashboard() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleViewCompany(company.id);
@@ -274,6 +274,18 @@ export default function PlatformDashboard() {
                         Settings
                       </Button>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-2"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(createPageUrl("CompanyTraining") + `?company_id=${company.id}`);
+                      }}
+                    >
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Manage Training Content
+                    </Button>
                   </CardContent>
                 </Card>
               );
