@@ -12,6 +12,7 @@ import ObjectionLibrary from './pages/ObjectionLibrary';
 import PlatformDashboard from './pages/PlatformDashboard';
 import PracticeLab from './pages/PracticeLab';
 import TrainingModules from './pages/TrainingModules';
+import TemplateManager from './pages/TemplateManager';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "PlatformDashboard": PlatformDashboard,
     "PracticeLab": PracticeLab,
     "TrainingModules": TrainingModules,
+    "TemplateManager": TemplateManager,
 }
 
 export const pagesConfig = {

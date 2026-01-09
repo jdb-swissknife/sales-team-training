@@ -44,6 +44,7 @@ export default function PlatformDashboard() {
     primary_admin_email: "",
     status: "trial"
   });
+  const [selectedTemplates, setSelectedTemplates] = useState([]);
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -72,11 +73,59 @@ export default function PlatformDashboard() {
     initialData: []
   });
 
+  // Fetch template modules for selection
+  const { data: templateModules = [] } = useQuery({
+    queryKey: ['templateModules'],
+    queryFn: async () => {
+      const allModules = await base44.entities.TrainingModule.list('order');
+      return allModules.filter(m => !m.company_id);
+    },
+    initialData: []
+  });
+
   const createCompanyMutation = useMutation({
-    mutationFn: (companyData) => base44.entities.Company.create({
-      ...companyData,
-      onboarded_date: new Date().toISOString().split('T')[0]
-    }),
+    mutationFn: async (companyData) => {
+      // Create company
+      const company = await base44.entities.Company.create({
+        ...companyData,
+        onboarded_date: new Date().toISOString().split('T')[0]
+      });
+
+      // Clone selected templates
+      if (selectedTemplates.length > 0) {
+        const allLessons = await base44.entities.Lesson.list();
+        const templateLessons = allLessons.filter(l => !l.company_id);
+
+        const moduleIdMap = {};
+        
+        for (const templateModuleId of selectedTemplates) {
+          const templateModule = templateModules.find(m => m.id === templateModuleId);
+          if (templateModule) {
+            const { id, created_date, updated_date, created_by, ...moduleData } = templateModule;
+            const newModule = await base44.entities.TrainingModule.create({
+              ...moduleData,
+              company_id: company.id
+            });
+            moduleIdMap[id] = newModule.id;
+          }
+        }
+
+        // Clone lessons for selected modules
+        for (const templateModuleId of selectedTemplates) {
+          const moduleLessons = templateLessons.filter(l => l.module_id === templateModuleId);
+          for (const lesson of moduleLessons) {
+            const { id, created_date, updated_date, created_by, module_id, ...lessonData } = lesson;
+            await base44.entities.Lesson.create({
+              ...lessonData,
+              company_id: company.id,
+              module_id: moduleIdMap[module_id]
+            });
+          }
+        }
+      }
+
+      return company;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['companies']);
       setShowCreateDialog(false);
@@ -87,6 +136,7 @@ export default function PlatformDashboard() {
         primary_admin_email: "",
         status: "trial"
       });
+      setSelectedTemplates([]);
     }
   });
 
@@ -374,7 +424,36 @@ export default function PlatformDashboard() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
+            </div>
+
+            {templateModules.length > 0 && (
+            <div>
+              <Label>Apply Training Templates (Optional)</Label>
+              <div className="mt-2 p-3 border border-slate-200 rounded-lg max-h-48 overflow-y-auto space-y-2">
+                {templateModules.map((template) => (
+                  <label key={template.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedTemplates.includes(template.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedTemplates([...selectedTemplates, template.id]);
+                        } else {
+                          setSelectedTemplates(selectedTemplates.filter(id => id !== template.id));
+                        }
+                      }}
+                      className="rounded"
+                    />
+                    <span className="text-sm font-medium">{template.title}</span>
+                    <Badge variant="outline" className="text-xs">{template.category}</Badge>
+                  </label>
+                ))}
+              </div>
+              <p className="text-xs text-slate-500 mt-1">
+                Selected templates will be cloned to this company
+              </p>
+            </div>
+            )}
 
           <DialogFooter>
             <Button

@@ -39,6 +39,13 @@ const navigationItems = [
     section: "platform"
   },
   {
+    title: "Template Library",
+    url: createPageUrl("TemplateManager"),
+    icon: Library,
+    roles: ["super_admin"],
+    section: "platform"
+  },
+  {
     title: "Dashboard",
     url: createPageUrl("Dashboard"),
     icon: LayoutDashboard,

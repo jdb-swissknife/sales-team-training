@@ -38,6 +38,7 @@ import {
 
 export default function CompanyTraining() {
   const [companyId, setCompanyId] = useState(null);
+  const [templateMode, setTemplateMode] = useState(false);
   const [showModuleDialog, setShowModuleDialog] = useState(false);
   const [showLessonDialog, setShowLessonDialog] = useState(false);
   const [editingModule, setEditingModule] = useState(null);
@@ -52,9 +53,13 @@ export default function CompanyTraining() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('company_id');
+    const isTemplateMode = params.get('template_mode') === 'true';
+    
+    setTemplateMode(isTemplateMode);
+    
     if (id) {
       setCompanyId(id);
-    } else {
+    } else if (!isTemplateMode) {
       const storedCompanyId = localStorage.getItem('selected_company_id');
       if (storedCompanyId) {
         setCompanyId(storedCompanyId);
@@ -72,29 +77,39 @@ export default function CompanyTraining() {
   });
 
   const { data: modules = [] } = useQuery({
-    queryKey: ['companyModules', companyId],
+    queryKey: ['companyModules', companyId, templateMode],
     queryFn: async () => {
       const allModules = await base44.entities.TrainingModule.list('order');
-      return allModules.filter(m => m.company_id === companyId);
+      return templateMode 
+        ? allModules.filter(m => !m.company_id)
+        : allModules.filter(m => m.company_id === companyId);
     },
-    enabled: !!companyId,
+    enabled: templateMode || !!companyId,
     initialData: []
   });
 
   const { data: lessons = [] } = useQuery({
-    queryKey: ['companyLessons', companyId],
+    queryKey: ['companyLessons', companyId, templateMode],
     queryFn: async () => {
       const allLessons = await base44.entities.Lesson.list('order');
-      return allLessons.filter(l => l.company_id === companyId);
+      return templateMode
+        ? allLessons.filter(l => !l.company_id)
+        : allLessons.filter(l => l.company_id === companyId);
     },
-    enabled: !!companyId,
+    enabled: templateMode || !!companyId,
     initialData: []
   });
 
   const createModuleMutation = useMutation({
-    mutationFn: (data) => base44.entities.TrainingModule.create({ ...data, company_id: companyId }),
+    mutationFn: (data) => {
+      const moduleData = templateMode 
+        ? data 
+        : { ...data, company_id: companyId };
+      return base44.entities.TrainingModule.create(moduleData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['companyModules']);
+      queryClient.invalidateQueries(['templateModules']);
       setShowModuleDialog(false);
       setEditingModule(null);
     }
@@ -117,9 +132,15 @@ export default function CompanyTraining() {
   });
 
   const createLessonMutation = useMutation({
-    mutationFn: (data) => base44.entities.Lesson.create({ ...data, company_id: companyId }),
+    mutationFn: (data) => {
+      const lessonData = templateMode 
+        ? data 
+        : { ...data, company_id: companyId };
+      return base44.entities.Lesson.create(lessonData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['companyLessons']);
+      queryClient.invalidateQueries(['templateLessons']);
       setShowLessonDialog(false);
       setEditingLesson(null);
     }
@@ -209,7 +230,7 @@ export default function CompanyTraining() {
     setShowLessonAI(false);
   };
 
-  if (!company) {
+  if (!templateMode && !company) {
     return (
       <div className="p-8 text-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
@@ -222,8 +243,12 @@ export default function CompanyTraining() {
     <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Training Content</h1>
-          <p className="text-slate-600 mt-1">{company.name}</p>
+          <h1 className="text-3xl font-bold text-slate-900">
+            {templateMode ? "Template Training Content" : "Training Content"}
+          </h1>
+          <p className="text-slate-600 mt-1">
+            {templateMode ? "Master templates for new companies" : company.name}
+          </p>
         </div>
         <Button onClick={() => openModuleDialog()} className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
