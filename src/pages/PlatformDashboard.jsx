@@ -424,36 +424,36 @@ export default function PlatformDashboard() {
                 </SelectContent>
               </Select>
             </div>
-            </div>
 
             {templateModules.length > 0 && (
-            <div>
-              <Label>Apply Training Templates (Optional)</Label>
-              <div className="mt-2 p-3 border border-slate-200 rounded-lg max-h-48 overflow-y-auto space-y-2">
-                {templateModules.map((template) => (
-                  <label key={template.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedTemplates.includes(template.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedTemplates([...selectedTemplates, template.id]);
-                        } else {
-                          setSelectedTemplates(selectedTemplates.filter(id => id !== template.id));
-                        }
-                      }}
-                      className="rounded"
-                    />
-                    <span className="text-sm font-medium">{template.title}</span>
-                    <Badge variant="outline" className="text-xs">{template.category}</Badge>
-                  </label>
-                ))}
+              <div>
+                <Label>Apply Training Templates (Optional)</Label>
+                <div className="mt-2 p-3 border border-slate-200 rounded-lg max-h-48 overflow-y-auto space-y-2">
+                  {templateModules.map((template) => (
+                    <label key={template.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedTemplates.includes(template.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedTemplates([...selectedTemplates, template.id]);
+                          } else {
+                            setSelectedTemplates(selectedTemplates.filter(id => id !== template.id));
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span className="text-sm font-medium">{template.title}</span>
+                      <Badge variant="outline" className="text-xs">{template.category}</Badge>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Selected templates will be cloned to this company
+                </p>
               </div>
-              <p className="text-xs text-slate-500 mt-1">
-                Selected templates will be cloned to this company
-              </p>
-            </div>
             )}
+          </div>
 
           <DialogFooter>
             <Button
