@@ -101,6 +101,11 @@ export default function PlatformDashboard() {
     navigate(createPageUrl("CompanyDetail") + `?id=${companyId}`);
   };
 
+  const handleEnterCompany = (companyId) => {
+    localStorage.setItem('selected_company_id', companyId);
+    navigate(createPageUrl("Dashboard"));
+  };
+
   const statusColors = {
     active: "bg-green-100 text-green-700 border-green-200",
     inactive: "bg-slate-100 text-slate-700 border-slate-200",
@@ -243,18 +248,32 @@ export default function PlatformDashboard() {
                       )}
                     </div>
 
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full mt-4"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleViewCompany(company.id);
-                      }}
-                    >
-                      <Settings className="w-4 h-4 mr-2" />
-                      Manage Company
-                    </Button>
+                    <div className="flex gap-2 mt-4">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEnterCompany(company.id);
+                        }}
+                      >
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Enter
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewCompany(company.id);
+                        }}
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Settings
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               );

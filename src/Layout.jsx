@@ -91,6 +91,13 @@ const navigationItems = [
     url: createPageUrl("AdminUsers"),
     icon: Users,
     roles: ["admin"]
+  },
+  {
+    title: "Training Content",
+    url: createPageUrl("CompanyTraining"),
+    icon: BookOpen,
+    roles: ["admin"],
+    section: "company"
   }
 ];
 
@@ -120,6 +127,7 @@ export default function Layout({ children }) {
   );
 
   const platformNavItems = filteredNavItems.filter(item => item.section === "platform");
+  const companyNavItems = filteredNavItems.filter(item => item.section === "company");
   const regularNavItems = filteredNavItems.filter(item => !item.section);
 
   return (
@@ -169,6 +177,39 @@ export default function Layout({ children }) {
                               location.pathname === item.url 
                                 ? 'text-white' 
                                 : 'text-slate-500 group-hover:text-purple-600'
+                            }`} />
+                            <span className="font-medium">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+
+            {companyNavItems.length > 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-xs font-semibold text-orange-600 uppercase tracking-wider px-3 py-2">
+                  Company Admin
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {companyNavItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild 
+                          className={`group hover:bg-gradient-to-r hover:from-orange-50 hover:to-orange-100/50 transition-all duration-200 rounded-xl mb-1 ${
+                            location.pathname === item.url 
+                              ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-md shadow-orange-600/20' 
+                              : 'text-slate-700'
+                          }`}
+                        >
+                          <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
+                            <item.icon className={`w-5 h-5 ${
+                              location.pathname === item.url 
+                                ? 'text-white' 
+                                : 'text-slate-500 group-hover:text-orange-600'
                             }`} />
                             <span className="font-medium">{item.title}</span>
                           </Link>

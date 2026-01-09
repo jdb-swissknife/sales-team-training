@@ -11,6 +11,7 @@ import PracticeLab from './pages/PracticeLab';
 import TrainingModules from './pages/TrainingModules';
 import PlatformDashboard from './pages/PlatformDashboard';
 import CompanyDetail from './pages/CompanyDetail';
+import CompanyTraining from './pages/CompanyTraining';
 import __Layout from './Layout.jsx';
 
 
@@ -28,6 +29,7 @@ export const PAGES = {
     "TrainingModules": TrainingModules,
     "PlatformDashboard": PlatformDashboard,
     "CompanyDetail": CompanyDetail,
+    "CompanyTraining": CompanyTraining,
 }
 
 export const pagesConfig = {
