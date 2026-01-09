@@ -17,8 +17,10 @@ import {
   Save,
   X,
   PlayCircle,
-  FileText
+  FileText,
+  Sparkles
 } from "lucide-react";
+import AIContentGenerator from "../components/training/AIContentGenerator";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +43,8 @@ export default function CompanyTraining() {
   const [editingModule, setEditingModule] = useState(null);
   const [editingLesson, setEditingLesson] = useState(null);
   const [selectedModuleId, setSelectedModuleId] = useState(null);
+  const [showModuleAI, setShowModuleAI] = useState(false);
+  const [showLessonAI, setShowLessonAI] = useState(false);
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -165,7 +169,18 @@ export default function CompanyTraining() {
       order: modules.length + 1,
       is_required: false
     });
+    setShowModuleAI(false);
     setShowModuleDialog(true);
+  };
+
+  const handleModuleAIAccept = (generatedContent) => {
+    setEditingModule({
+      ...editingModule,
+      description: generatedContent.description || editingModule.description,
+      learning_objectives: generatedContent.learning_objectives || editingModule.learning_objectives,
+      estimated_minutes: generatedContent.estimated_minutes || editingModule.estimated_minutes
+    });
+    setShowModuleAI(false);
   };
 
   const openLessonDialog = (moduleId, lesson = null) => {
@@ -180,7 +195,18 @@ export default function CompanyTraining() {
       key_takeaways: [],
       order: lessons.filter(l => l.module_id === moduleId).length + 1
     });
+    setShowLessonAI(false);
     setShowLessonDialog(true);
+  };
+
+  const handleLessonAIAccept = (generatedContent) => {
+    setEditingLesson({
+      ...editingLesson,
+      content_text: generatedContent.content_text || editingLesson.content_text,
+      key_takeaways: generatedContent.key_takeaways || editingLesson.key_takeaways,
+      practice_task: generatedContent.practice_task || editingLesson.practice_task
+    });
+    setShowLessonAI(false);
   };
 
   if (!company) {
@@ -316,6 +342,28 @@ export default function CompanyTraining() {
                   onChange={(e) => setEditingModule({ ...editingModule, title: e.target.value })}
                 />
               </div>
+
+              {!showModuleAI && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowModuleAI(true)}
+                  className="w-full border-purple-200 text-purple-700 hover:bg-purple-50"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Content with AI
+                </Button>
+              )}
+
+              {showModuleAI && (
+                <AIContentGenerator
+                  contentType="module"
+                  currentData={editingModule}
+                  onAccept={handleModuleAIAccept}
+                  onCancel={() => setShowModuleAI(false)}
+                />
+              )}
+
               <div>
                 <Label>Description</Label>
                 <Textarea
@@ -401,6 +449,28 @@ export default function CompanyTraining() {
                   onChange={(e) => setEditingLesson({ ...editingLesson, title: e.target.value })}
                 />
               </div>
+
+              {!showLessonAI && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowLessonAI(true)}
+                  className="w-full border-purple-200 text-purple-700 hover:bg-purple-50"
+                >
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate Content with AI
+                </Button>
+              )}
+
+              {showLessonAI && (
+                <AIContentGenerator
+                  contentType="lesson"
+                  currentData={editingLesson}
+                  onAccept={handleLessonAIAccept}
+                  onCancel={() => setShowLessonAI(false)}
+                />
+              )}
+
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label>Content Type</Label>
