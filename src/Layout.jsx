@@ -32,6 +32,13 @@ import {
 
 const navigationItems = [
   {
+    title: "Platform Dashboard",
+    url: createPageUrl("PlatformDashboard"),
+    icon: LayoutDashboard,
+    roles: ["super_admin"],
+    section: "platform"
+  },
+  {
     title: "Dashboard",
     url: createPageUrl("Dashboard"),
     icon: LayoutDashboard,
@@ -112,6 +119,9 @@ export default function Layout({ children }) {
     item.roles.includes(userRole)
   );
 
+  const platformNavItems = filteredNavItems.filter(item => item.section === "platform");
+  const regularNavItems = filteredNavItems.filter(item => !item.section);
+
   return (
     <SidebarProvider>
       <style>{`
@@ -137,13 +147,46 @@ export default function Layout({ children }) {
           </SidebarHeader>
           
           <SidebarContent className="p-3">
+            {platformNavItems.length > 0 && (
+              <SidebarGroup>
+                <SidebarGroupLabel className="text-xs font-semibold text-purple-600 uppercase tracking-wider px-3 py-2">
+                  Platform Admin
+                </SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {platformNavItems.map((item) => (
+                      <SidebarMenuItem key={item.title}>
+                        <SidebarMenuButton 
+                          asChild 
+                          className={`group hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100/50 transition-all duration-200 rounded-xl mb-1 ${
+                            location.pathname === item.url 
+                              ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-md shadow-purple-600/20' 
+                              : 'text-slate-700'
+                          }`}
+                        >
+                          <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
+                            <item.icon className={`w-5 h-5 ${
+                              location.pathname === item.url 
+                                ? 'text-white' 
+                                : 'text-slate-500 group-hover:text-purple-600'
+                            }`} />
+                            <span className="font-medium">{item.title}</span>
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+
             <SidebarGroup>
               <SidebarGroupLabel className="text-xs font-semibold text-slate-500 uppercase tracking-wider px-3 py-2">
                 Navigation
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {filteredNavItems.map((item) => (
+                  {regularNavItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton 
                         asChild 
