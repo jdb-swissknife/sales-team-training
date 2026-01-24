@@ -45,6 +45,7 @@ export default function PlatformDashboard() {
     status: "trial"
   });
   const [selectedTemplates, setSelectedTemplates] = useState([]);
+  const [selectedObjections, setSelectedObjections] = useState([]);
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -79,6 +80,16 @@ export default function PlatformDashboard() {
     queryFn: async () => {
       const allModules = await base44.entities.TrainingModule.list('order');
       return allModules.filter(m => !m.company_id);
+    },
+    initialData: []
+  });
+
+  // Fetch template objections for selection
+  const { data: templateObjections = [] } = useQuery({
+    queryKey: ['templateObjections'],
+    queryFn: async () => {
+      const allObjections = await base44.entities.Objection.list();
+      return allObjections.filter(o => !o.company_id);
     },
     initialData: []
   });
@@ -124,6 +135,20 @@ export default function PlatformDashboard() {
         }
       }
 
+      // Clone selected objections
+      if (selectedObjections.length > 0) {
+        for (const objectionId of selectedObjections) {
+          const templateObjection = templateObjections.find(o => o.id === objectionId);
+          if (templateObjection) {
+            const { id, created_date, updated_date, created_by, ...objectionData } = templateObjection;
+            await base44.entities.Objection.create({
+              ...objectionData,
+              company_id: company.id
+            });
+          }
+        }
+      }
+
       return company;
     },
     onSuccess: () => {
@@ -137,6 +162,7 @@ export default function PlatformDashboard() {
         status: "trial"
       });
       setSelectedTemplates([]);
+      setSelectedObjections([]);
     }
   });
 
@@ -450,6 +476,35 @@ export default function PlatformDashboard() {
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
                   Selected templates will be cloned to this company
+                </p>
+              </div>
+            )}
+
+            {templateObjections.length > 0 && (
+              <div>
+                <Label>Apply Objection Templates (Optional)</Label>
+                <div className="mt-2 p-3 border border-slate-200 rounded-lg max-h-48 overflow-y-auto space-y-2">
+                  {templateObjections.map((objection) => (
+                    <label key={objection.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedObjections.includes(objection.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedObjections([...selectedObjections, objection.id]);
+                          } else {
+                            setSelectedObjections(selectedObjections.filter(id => id !== objection.id));
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      <span className="text-sm font-medium">"{objection.objection_text}"</span>
+                      <Badge variant="outline" className="text-xs">{objection.category}</Badge>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  Selected objections will be cloned to this company
                 </p>
               </div>
             )}
