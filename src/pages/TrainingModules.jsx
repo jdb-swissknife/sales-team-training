@@ -1,7 +1,6 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,14 +19,31 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 export default function TrainingModules() {
   const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      try {
+        const userData = await base44.auth.me();
+        setUser(userData);
+      } catch (error) {
+        console.error("Failed to load user:", error);
+      }
+    };
+    loadUser();
+  }, []);
+
+  // Get company context - either from user's company_id or from localStorage (for platform admins)
+  const companyId = user?.company_id || localStorage.getItem('selected_company_id');
 
   const { data: modules = [] } = useQuery({
-    queryKey: ['trainingModules'],
+    queryKey: ['trainingModules', companyId],
     queryFn: async () => {
       const allModules = await base44.entities.TrainingModule.list('order');
-      // Filter out "Welcome to Solar Door-to-Door" module
-      return allModules.filter(m => m.title !== "Welcome to Solar Door-to-Door");
+      // Filter by company_id to only show modules for this company
+      return allModules.filter(m => m.company_id === companyId);
     },
+    enabled: !!companyId,
     initialData: []
   });
 
