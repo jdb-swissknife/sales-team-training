@@ -35,6 +35,18 @@ export default function Dashboard() {
     loadUser();
   }, []);
 
+  // Get company context
+  const companyId = user?.company_id || localStorage.getItem('selected_company_id');
+
+  const { data: company } = useQuery({
+    queryKey: ['company', companyId],
+    queryFn: async () => {
+      const companies = await base44.entities.Company.list();
+      return companies.find(c => c.id === companyId);
+    },
+    enabled: !!companyId
+  });
+
   const { data: assignments = [] } = useQuery({
     queryKey: ['assignments', user?.id],
     queryFn: () => base44.entities.Assignment.filter({ rep_id: user?.id }, '-due_date'),
@@ -97,6 +109,13 @@ export default function Dashboard() {
     <div className="p-4 md:p-8 space-y-6">
       {/* Header */}
       <div className="space-y-2">
+        {company && (
+          <div className="flex items-center gap-2 mb-2">
+            <Badge variant="outline" className="text-sm font-medium text-blue-600 border-blue-200">
+              {company.name}
+            </Badge>
+          </div>
+        )}
         <h1 className="text-3xl md:text-4xl font-bold text-slate-900">
           Welcome back, {user?.full_name?.split(' ')[0] || 'Rep'}
         </h1>
