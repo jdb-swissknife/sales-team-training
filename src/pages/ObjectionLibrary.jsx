@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -17,31 +17,10 @@ export default function ObjectionLibrary() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStage, setFilterStage] = useState("all");
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      }
-    };
-    loadUser();
-  }, []);
-
-  // Get company context
-  const companyId = user?.company_id || localStorage.getItem('selected_company_id');
 
   const { data: objections = [] } = useQuery({
-    queryKey: ['objections', companyId],
-    queryFn: async () => {
-      const allObjections = await base44.entities.Objection.list();
-      // Filter by company_id to only show objections for this company
-      return allObjections.filter(o => o.company_id === companyId);
-    },
-    enabled: !!companyId,
+    queryKey: ['objections'],
+    queryFn: () => base44.entities.Objection.list(),
     initialData: []
   });
 

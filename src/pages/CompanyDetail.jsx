@@ -360,16 +360,7 @@ export default function CompanyDetail() {
         <TabsContent value="content" className="space-y-4">
           <Card className="border-0 shadow-md">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Training Modules</CardTitle>
-                <Button
-                  onClick={() => navigate(createPageUrl("CompanyTraining") + `?company_id=${companyId}`)}
-                  className="bg-blue-600 hover:bg-blue-700"
-                >
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Manage Content
-                </Button>
-              </div>
+              <CardTitle>Training Modules</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">

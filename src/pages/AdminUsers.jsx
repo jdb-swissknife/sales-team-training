@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
@@ -61,26 +62,9 @@ export default function AdminUsers() {
     loadUser();
   }, []);
 
-  // Get company context - either from user's company_id or from localStorage (for platform admins)
-  const companyId = user?.company_id || localStorage.getItem('selected_company_id');
-
-  const { data: company } = useQuery({
-    queryKey: ['company', companyId],
-    queryFn: async () => {
-      const companies = await base44.entities.Company.list();
-      return companies.find(c => c.id === companyId);
-    },
-    enabled: !!companyId
-  });
-
   const { data: allUsers = [] } = useQuery({
-    queryKey: ['allUsers', companyId],
-    queryFn: async () => {
-      const users = await base44.entities.User.list('-created_date');
-      // Filter users by company
-      return users.filter(u => u.company_id === companyId);
-    },
-    enabled: !!companyId,
+    queryKey: ['allUsers'],
+    queryFn: () => base44.entities.User.list('created_date'),
     initialData: []
   });
 
@@ -97,35 +81,15 @@ export default function AdminUsers() {
       return;
     }
 
-    if (!companyId) {
-      alert("Company context not found. Please ensure you're accessing from a company context.");
-      return;
-    }
-
     setInviting(true);
     try {
-      // Invite user with company assignment
       await base44.auth.inviteUser({
         email: inviteEmail,
         full_name: inviteName,
         role: inviteRole
       });
-
-      // After invitation, we need to update the user record with company_id
-      // Wait a moment for the user to be created
-      setTimeout(async () => {
-        try {
-          const users = await base44.entities.User.list();
-          const newUser = users.find(u => u.email === inviteEmail);
-          if (newUser) {
-            await base44.entities.User.update(newUser.id, { company_id: companyId });
-          }
-        } catch (error) {
-          console.error("Failed to assign company:", error);
-        }
-      }, 2000);
       
-      alert(`User ${inviteEmail} has been invited to ${company?.name || 'the company'}!`);
+      alert(`User ${inviteEmail} has been invited!`);
       setShowInviteDialog(false);
       setInviteEmail("");
       setInviteName("");
@@ -182,9 +146,7 @@ export default function AdminUsers() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">User Management</h1>
-          <p className="text-slate-600 mt-1">
-            {company?.name ? `Manage users for ${company.name}` : 'Invite and manage team members'}
-          </p>
+          <p className="text-slate-600 mt-1">Invite and manage team members</p>
         </div>
         <Button 
           onClick={() => setShowInviteDialog(true)}
@@ -341,7 +303,7 @@ export default function AdminUsers() {
               Invite New User
             </DialogTitle>
             <DialogDescription>
-              Add a new user to {company?.name || 'your company'}. They will receive login credentials via email.
+              Add a new user to the system. They will receive login credentials via email.
             </DialogDescription>
           </DialogHeader>
 
