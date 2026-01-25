@@ -86,7 +86,8 @@ Ensure the content is professional, actionable, and tailored to door-to-door sol
 
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: fullPrompt,
-        response_json_schema: schema
+        response_json_schema: schema,
+        file_urls: uploadedFileUrl ? [uploadedFileUrl] : undefined
       });
 
       setGeneratedContent(result);

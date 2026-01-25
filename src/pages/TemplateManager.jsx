@@ -58,6 +58,22 @@ export default function TemplateManager() {
     frequency: "Common",
     tags: []
   });
+  const [showCreateModuleForm, setShowCreateModuleForm] = useState(false);
+  const [newModule, setNewModule] = useState({
+    industry: "Solar",
+    title: "",
+    description: "",
+    category: "Core Skills",
+    stage: "Prospecting",
+    difficulty: "Intro",
+    estimated_minutes: 30,
+    learning_objectives: [],
+    order: 1,
+    is_required: false
+  });
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState(null);
+  const [showModuleAI, setShowModuleAI] = useState(false);
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -206,6 +222,54 @@ export default function TemplateManager() {
       });
     }
   });
+
+  const createModuleMutation = useMutation({
+    mutationFn: (moduleData) => base44.entities.TrainingModule.create(moduleData),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['templateModules']);
+      setShowCreateModuleForm(false);
+      setNewModule({
+        industry: "Solar",
+        title: "",
+        description: "",
+        category: "Core Skills",
+        stage: "Prospecting",
+        difficulty: "Intro",
+        estimated_minutes: 30,
+        learning_objectives: [],
+        order: 1,
+        is_required: false
+      });
+      setUploadedFileUrl(null);
+      setShowModuleAI(false);
+    }
+  });
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    setUploadingFile(true);
+    try {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      setUploadedFileUrl(result.file_url);
+    } catch (error) {
+      console.error('File upload failed:', error);
+      alert('Failed to upload file. Please try again.');
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const handleModuleAIAccept = (generatedContent) => {
+    setNewModule({
+      ...newModule,
+      description: generatedContent.description || newModule.description,
+      learning_objectives: generatedContent.learning_objectives || newModule.learning_objectives,
+      estimated_minutes: generatedContent.estimated_minutes || newModule.estimated_minutes
+    });
+    setShowModuleAI(false);
+  };
 
   const handleCreateFromCompany = () => {
     if (!sourceCompanyId) {
@@ -569,6 +633,170 @@ export default function TemplateManager() {
               className="bg-blue-600"
             >
               {createTemplateFromCompany.isPending ? "Cloning..." : "Clone Templates"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create New Module Dialog */}
+      <Dialog open={showCreateModuleForm} onOpenChange={setShowCreateModuleForm}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Training Module Template</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Upload Knowledge Base / Documentation (Optional)</Label>
+              <div className="mt-2">
+                <input
+                  type="file"
+                  onChange={handleFileUpload}
+                  accept=".pdf,.doc,.docx,.txt,.csv"
+                  className="hidden"
+                  id="module-file-upload"
+                  disabled={uploadingFile}
+                />
+                <label htmlFor="module-file-upload">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    disabled={uploadingFile}
+                    asChild
+                  >
+                    <span>
+                      <Upload className="w-4 h-4 mr-2" />
+                      {uploadingFile ? "Uploading..." : uploadedFileUrl ? "File Uploaded ✓" : "Upload Documents"}
+                    </span>
+                  </Button>
+                </label>
+                {uploadedFileUrl && (
+                  <p className="text-sm text-green-600 mt-1">✓ File uploaded successfully</p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <Label>Module Title *</Label>
+              <Input
+                placeholder="e.g., Introduction to Door Knocking"
+                value={newModule.title}
+                onChange={(e) => setNewModule({ ...newModule, title: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <Label>Industry *</Label>
+              <Select value={newModule.industry} onValueChange={(v) => setNewModule({ ...newModule, industry: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Solar">Solar</SelectItem>
+                  <SelectItem value="Service Business General">Service Business General</SelectItem>
+                  <SelectItem value="Roofing">Roofing</SelectItem>
+                  <SelectItem value="Painting">Painting</SelectItem>
+                  <SelectItem value="Plumbing">Plumbing</SelectItem>
+                  <SelectItem value="Home Improvement">Home Improvement</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {uploadedFileUrl && !showModuleAI && (
+              <Button
+                type="button"
+                onClick={() => setShowModuleAI(true)}
+                className="w-full bg-purple-600 hover:bg-purple-700"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Generate Content from Uploaded File
+              </Button>
+            )}
+
+            {showModuleAI && (
+              <AIContentGenerator
+                contentType="module"
+                currentData={newModule}
+                onAccept={handleModuleAIAccept}
+                onCancel={() => setShowModuleAI(false)}
+                uploadedFileUrl={uploadedFileUrl}
+              />
+            )}
+
+            <div>
+              <Label>Description</Label>
+              <Textarea
+                placeholder="Brief description of what this module covers..."
+                value={newModule.description}
+                onChange={(e) => setNewModule({ ...newModule, description: e.target.value })}
+                rows={3}
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Category *</Label>
+                <Select value={newModule.category} onValueChange={(v) => setNewModule({ ...newModule, category: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Onboarding">Onboarding</SelectItem>
+                    <SelectItem value="Core Skills">Core Skills</SelectItem>
+                    <SelectItem value="Tools & Resources">Tools & Resources</SelectItem>
+                    <SelectItem value="Practice Lab">Practice Lab</SelectItem>
+                    <SelectItem value="Assessments">Assessments</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Stage *</Label>
+                <Select value={newModule.stage} onValueChange={(v) => setNewModule({ ...newModule, stage: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Orientation">Orientation</SelectItem>
+                    <SelectItem value="Prospecting">Prospecting</SelectItem>
+                    <SelectItem value="Qualifying">Qualifying</SelectItem>
+                    <SelectItem value="Presentation">Presentation</SelectItem>
+                    <SelectItem value="Close">Close</SelectItem>
+                    <SelectItem value="Follow-up">Follow-up</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Difficulty</Label>
+                <Select value={newModule.difficulty} onValueChange={(v) => setNewModule({ ...newModule, difficulty: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Intro">Intro</SelectItem>
+                    <SelectItem value="Intermediate">Intermediate</SelectItem>
+                    <SelectItem value="Master">Master</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Estimated Minutes</Label>
+                <Input
+                  type="number"
+                  value={newModule.estimated_minutes}
+                  onChange={(e) => setNewModule({ ...newModule, estimated_minutes: parseInt(e.target.value) || 0 })}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateModuleForm(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => createModuleMutation.mutate(newModule)}
+              disabled={!newModule.title || createModuleMutation.isPending}
+              className="bg-blue-600"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {createModuleMutation.isPending ? "Creating..." : "Create Module"}
             </Button>
           </DialogFooter>
         </DialogContent>
