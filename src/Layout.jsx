@@ -104,12 +104,20 @@ const navigationItems = [
 export default function Layout({ children }) {
   const location = useLocation();
   const [user, setUser] = useState(null);
+  const [company, setCompany] = useState(null);
 
   useEffect(() => {
     const loadUser = async () => {
       try {
         const userData = await base44.auth.me();
         setUser(userData);
+        
+        // Load company if user has company_id
+        if (userData.company_id) {
+          const companies = await base44.entities.Company.list();
+          const userCompany = companies.find(c => c.id === userData.company_id);
+          setCompany(userCompany);
+        }
       } catch (error) {
         console.error("Failed to load user:", error);
       }
@@ -147,9 +155,9 @@ export default function Layout({ children }) {
                 <Sun className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="font-bold text-slate-900 text-lg">{user?.company_name || "SolarTraining"}</h2>
+                <h2 className="font-bold text-slate-900 text-lg">{company?.name || "SolarTraining"}</h2>
                 <p className="text-xs text-slate-500 font-medium">
-                  {user?.company_name ? "Training Platform" : "Door-to-Door Excellence"}
+                  {company?.name ? "Training Platform" : "Door-to-Door Excellence"}
                 </p>
               </div>
             </div>
@@ -253,7 +261,7 @@ export default function Layout({ children }) {
               <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors">
                 <Menu className="w-5 h-5" />
               </SidebarTrigger>
-              <h1 className="text-lg font-bold text-slate-900">{user?.company_name || "SolarTraining"}</h1>
+              <h1 className="text-lg font-bold text-slate-900">{company?.name || "SolarTraining"}</h1>
             </div>
           </header>
 
