@@ -11,7 +11,8 @@ export default function AIContentGenerator({
   contentType, // "module" or "lesson"
   currentData, // current module/lesson data for context
   onAccept, // callback when content is accepted
-  onCancel 
+  onCancel,
+  uploadedFileUrl // optional pre-uploaded file URL
 }) {
   const [mode, setMode] = useState("prompt"); // "prompt" or "file"
   const [prompt, setPrompt] = useState("");
@@ -29,7 +30,7 @@ export default function AIContentGenerator({
   };
 
   const generateFromPrompt = async () => {
-    if (!prompt.trim()) {
+    if (!prompt.trim() && !uploadedFileUrl) {
       setError("Please provide instructions for the AI");
       return;
     }
@@ -87,7 +88,7 @@ Ensure the content is professional, actionable, and tailored to door-to-door sol
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: fullPrompt,
         response_json_schema: schema,
-        file_urls: uploadedFileUrl ? [uploadedFileUrl] : undefined
+        ...(uploadedFileUrl && { file_urls: [uploadedFileUrl] })
       });
 
       setGeneratedContent(result);
@@ -214,18 +215,22 @@ Format the output as JSON with these exact fields.`;
 
               <TabsContent value="prompt" className="space-y-4 mt-4">
                 <div>
-                  <Label>Instructions for AI</Label>
+                  <Label>Instructions for AI {uploadedFileUrl && "(Optional - file uploaded)"}</Label>
                   <Textarea
-                    placeholder={contentType === "module" 
-                      ? "Example: Create a comprehensive module about handling price objections in solar sales. Focus on value-based selling techniques and ROI calculations."
-                      : "Example: Write detailed lesson content about the 3-step objection handling framework. Include real examples and practice scenarios."}
+                    placeholder={uploadedFileUrl
+                      ? "Provide additional context or specific instructions (or leave blank to extract from uploaded file)..."
+                      : contentType === "module" 
+                        ? "Example: Create a comprehensive module about handling price objections in solar sales. Focus on value-based selling techniques and ROI calculations."
+                        : "Example: Write detailed lesson content about the 3-step objection handling framework. Include real examples and practice scenarios."}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     rows={4}
                     className="mt-2"
                   />
                   <p className="text-xs text-slate-500 mt-1">
-                    Be specific about what you want the AI to create. The more detail, the better the results.
+                    {uploadedFileUrl 
+                      ? "Add extra instructions or leave blank to use the uploaded file content."
+                      : "Be specific about what you want the AI to create. The more detail, the better the results."}
                   </p>
                 </div>
               </TabsContent>

@@ -24,7 +24,9 @@ import {
   Trash2,
   ArrowLeft,
   Layers,
-  MessageSquare
+  MessageSquare,
+  Upload,
+  Save
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -34,6 +36,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import AIContentGenerator from "../components/training/AIContentGenerator";
 
 export default function TemplateManager() {
   const [user, setUser] = useState(null);
@@ -387,16 +390,16 @@ export default function TemplateManager() {
               </SelectContent>
             </Select>
             <div className="flex gap-2">
-            <Button
-              onClick={() => setShowCreateDialog(true)}
-              variant="outline"
-              className="border-blue-200 text-blue-700"
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              Clone from Company
-            </Button>
               <Button
-                onClick={() => navigate(createPageUrl("CompanyTraining") + "?template_mode=true")}
+                onClick={() => setShowCreateDialog(true)}
+                variant="outline"
+                className="border-blue-200 text-blue-700"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Clone from Company
+              </Button>
+              <Button
+                onClick={() => setShowCreateModuleForm(true)}
                 className="bg-blue-600 hover:bg-blue-700"
               >
                 <Plus className="w-4 h-4 mr-2" />
