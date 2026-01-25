@@ -412,15 +412,14 @@ export default function TemplateManager() {
                 ))}
               </SelectContent>
             </Select>
-              <Button
-                onClick={() => setShowObjectionDialog(true)}
-                variant="outline"
-                className="border-orange-200 text-orange-700"
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Clone from Company
-              </Button>
-            </div>
+            <Button
+              onClick={() => setShowObjectionDialog(true)}
+              variant="outline"
+              className="border-orange-200 text-orange-700"
+            >
+              <Copy className="w-4 h-4 mr-2" />
+              Clone from Company
+            </Button>
           </div>
 
           {/* Template Objections */}
