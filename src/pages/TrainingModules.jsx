@@ -1,4 +1,3 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { useState } from "react";
@@ -24,9 +23,13 @@ export default function TrainingModules() {
   const { data: modules = [] } = useQuery({
     queryKey: ['trainingModules'],
     queryFn: async () => {
+      const user = await base44.auth.me();
       const allModules = await base44.entities.TrainingModule.list('order');
-      // Filter out "Welcome to Solar Door-to-Door" module
-      return allModules.filter(m => m.title !== "Welcome to Solar Door-to-Door");
+      // Filter by company_id and exclude welcome module
+      return allModules.filter(m => 
+        m.company_id === user.company_id && 
+        m.title !== "Welcome to Solar Door-to-Door"
+      );
     },
     initialData: []
   });

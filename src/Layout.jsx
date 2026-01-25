@@ -39,6 +39,13 @@ const navigationItems = [
     section: "platform"
   },
   {
+    title: "Content Library",
+    url: createPageUrl("ContentLibrary"),
+    icon: Library,
+    roles: ["super_admin"],
+    section: "platform"
+  },
+  {
     title: "Dashboard",
     url: createPageUrl("Dashboard"),
     icon: LayoutDashboard,
@@ -140,8 +147,10 @@ export default function Layout({ children }) {
                 <Sun className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h2 className="font-bold text-slate-900 text-lg">SolarTraining</h2>
-                <p className="text-xs text-slate-500 font-medium">Door-to-Door Excellence</p>
+                <h2 className="font-bold text-slate-900 text-lg">{user?.company_name || "SolarTraining"}</h2>
+                <p className="text-xs text-slate-500 font-medium">
+                  {user?.company_name ? "Training Platform" : "Door-to-Door Excellence"}
+                </p>
               </div>
             </div>
           </SidebarHeader>
@@ -244,7 +253,7 @@ export default function Layout({ children }) {
               <SidebarTrigger className="hover:bg-slate-100 p-2 rounded-lg transition-colors">
                 <Menu className="w-5 h-5" />
               </SidebarTrigger>
-              <h1 className="text-lg font-bold text-slate-900">SolarTraining</h1>
+              <h1 className="text-lg font-bold text-slate-900">{user?.company_name || "SolarTraining"}</h1>
             </div>
           </header>
 

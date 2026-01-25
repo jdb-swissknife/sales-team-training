@@ -20,7 +20,12 @@ export default function ObjectionLibrary() {
 
   const { data: objections = [] } = useQuery({
     queryKey: ['objections'],
-    queryFn: () => base44.entities.Objection.list(),
+    queryFn: async () => {
+      const user = await base44.auth.me();
+      const allObjections = await base44.entities.Objection.list();
+      // Filter by company_id
+      return allObjections.filter(o => o.company_id === user.company_id);
+    },
     initialData: []
   });
 
