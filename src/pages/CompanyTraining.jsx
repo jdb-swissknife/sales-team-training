@@ -18,7 +18,8 @@ import {
   X,
   PlayCircle,
   FileText,
-  Sparkles
+  Sparkles,
+  Copy
 } from "lucide-react";
 import AIContentGenerator from "../components/training/AIContentGenerator";
 import {
@@ -46,6 +47,7 @@ export default function CompanyTraining() {
   const [selectedModuleId, setSelectedModuleId] = useState(null);
   const [showModuleAI, setShowModuleAI] = useState(false);
   const [showLessonAI, setShowLessonAI] = useState(false);
+  const [showTemplateLessonPicker, setShowTemplateLessonPicker] = useState(false);
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -97,6 +99,16 @@ export default function CompanyTraining() {
         : allLessons.filter(l => l.company_id === companyId);
     },
     enabled: templateMode || !!companyId,
+    initialData: []
+  });
+
+  const { data: templateLessons = [] } = useQuery({
+    queryKey: ['templateLessons'],
+    queryFn: async () => {
+      const allLessons = await base44.entities.Lesson.list('order');
+      return allLessons.filter(l => !l.company_id);
+    },
+    enabled: !templateMode,
     initialData: []
   });
 
@@ -230,6 +242,16 @@ export default function CompanyTraining() {
     setShowLessonAI(false);
   };
 
+  const handleAddTemplateLesson = (templateLesson) => {
+    const { id, company_id, created_date, updated_date, created_by, ...lessonData } = templateLesson;
+    createLessonMutation.mutate({
+      ...lessonData,
+      module_id: selectedModuleId,
+      order: lessons.filter(l => l.module_id === selectedModuleId).length + 1
+    });
+    setShowTemplateLessonPicker(false);
+  };
+
   if (!templateMode && !company) {
     return (
       <div className="p-8 text-center">
@@ -298,10 +320,26 @@ export default function CompanyTraining() {
                 
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-slate-900">Lessons ({moduleLessons.length})</h3>
-                  <Button size="sm" variant="outline" onClick={() => openLessonDialog(module.id)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Lesson
-                  </Button>
+                  <div className="flex gap-2">
+                    {!templateMode && (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => {
+                          setSelectedModuleId(module.id);
+                          setShowTemplateLessonPicker(true);
+                        }}
+                        className="border-purple-200 text-purple-700"
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        From Template
+                      </Button>
+                    )}
+                    <Button size="sm" variant="outline" onClick={() => openLessonDialog(module.id)}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      New Lesson
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -473,6 +511,39 @@ export default function CompanyTraining() {
               <Save className="w-4 h-4 mr-2" />
               Save Module
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Lesson Picker Dialog */}
+      <Dialog open={showTemplateLessonPicker} onOpenChange={setShowTemplateLessonPicker}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Add Lesson from Template Library</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-4">
+            {templateLessons.length === 0 ? (
+              <p className="text-center text-slate-500 py-8">No template lessons available</p>
+            ) : (
+              templateLessons.map((lesson) => (
+                <div key={lesson.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50">
+                  <div className="flex items-center gap-3 flex-1">
+                    <PlayCircle className="w-5 h-5 text-blue-600" />
+                    <div>
+                      <p className="font-medium text-slate-900">{lesson.title}</p>
+                      <p className="text-sm text-slate-600">{lesson.content_type} • {lesson.duration_minutes} min</p>
+                    </div>
+                  </div>
+                  <Button size="sm" onClick={() => handleAddTemplateLesson(lesson)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add
+                  </Button>
+                </div>
+              ))
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTemplateLessonPicker(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
