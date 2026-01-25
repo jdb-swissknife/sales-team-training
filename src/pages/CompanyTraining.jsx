@@ -368,6 +368,21 @@ export default function CompanyTraining() {
                 />
               </div>
 
+              {templateMode && (
+                <div>
+                  <Label>Industry</Label>
+                  <Select value={editingModule.industry || "Solar"} onValueChange={(v) => setEditingModule({ ...editingModule, industry: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Solar">Solar</SelectItem>
+                      <SelectItem value="Service Business">Service Business</SelectItem>
+                      <SelectItem value="General Sales">General Sales</SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               {!showModuleAI && (
                 <Button
                   type="button"

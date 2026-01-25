@@ -46,6 +46,8 @@ export default function PlatformDashboard() {
   });
   const [selectedTemplates, setSelectedTemplates] = useState([]);
   const [selectedObjections, setSelectedObjections] = useState([]);
+  const [templateIndustryFilter, setTemplateIndustryFilter] = useState("all");
+  const [objectionIndustryFilter, setObjectionIndustryFilter] = useState("all");
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -454,8 +456,22 @@ export default function PlatformDashboard() {
             {templateModules.length > 0 && (
               <div>
                 <Label>Apply Training Templates (Optional)</Label>
+                <Select value={templateIndustryFilter} onValueChange={setTemplateIndustryFilter}>
+                  <SelectTrigger className="mt-2 mb-2">
+                    <SelectValue placeholder="Filter by Industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Industries</SelectItem>
+                    <SelectItem value="Solar">Solar</SelectItem>
+                    <SelectItem value="Service Business">Service Business</SelectItem>
+                    <SelectItem value="General Sales">General Sales</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
                 <div className="mt-2 p-3 border border-slate-200 rounded-lg max-h-48 overflow-y-auto space-y-2">
-                  {templateModules.map((template) => (
+                  {templateModules
+                    .filter(t => templateIndustryFilter === "all" || t.industry === templateIndustryFilter)
+                    .map((template) => (
                     <label key={template.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
                       <input
                         type="checkbox"
@@ -470,6 +486,7 @@ export default function PlatformDashboard() {
                         className="rounded"
                       />
                       <span className="text-sm font-medium">{template.title}</span>
+                      <Badge className="bg-blue-100 text-blue-700 text-xs">{template.industry}</Badge>
                       <Badge variant="outline" className="text-xs">{template.category}</Badge>
                     </label>
                   ))}
@@ -483,8 +500,22 @@ export default function PlatformDashboard() {
             {templateObjections.length > 0 && (
               <div>
                 <Label>Apply Objection Templates (Optional)</Label>
+                <Select value={objectionIndustryFilter} onValueChange={setObjectionIndustryFilter}>
+                  <SelectTrigger className="mt-2 mb-2">
+                    <SelectValue placeholder="Filter by Industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Industries</SelectItem>
+                    <SelectItem value="Solar">Solar</SelectItem>
+                    <SelectItem value="Service Business">Service Business</SelectItem>
+                    <SelectItem value="General Sales">General Sales</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
                 <div className="mt-2 p-3 border border-slate-200 rounded-lg max-h-48 overflow-y-auto space-y-2">
-                  {templateObjections.map((objection) => (
+                  {templateObjections
+                    .filter(o => objectionIndustryFilter === "all" || o.industry === objectionIndustryFilter)
+                    .map((objection) => (
                     <label key={objection.id} className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded cursor-pointer">
                       <input
                         type="checkbox"
@@ -499,6 +530,7 @@ export default function PlatformDashboard() {
                         className="rounded"
                       />
                       <span className="text-sm font-medium">"{objection.objection_text}"</span>
+                      <Badge className="bg-orange-100 text-orange-700 text-xs">{objection.industry}</Badge>
                       <Badge variant="outline" className="text-xs">{objection.category}</Badge>
                     </label>
                   ))}

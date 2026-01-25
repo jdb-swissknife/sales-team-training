@@ -8,6 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   BookOpen,
   Plus,
   Copy,
@@ -33,6 +40,8 @@ export default function TemplateManager() {
   const [newTemplateName, setNewTemplateName] = useState("");
   const [sourceCompanyId, setSourceCompanyId] = useState(null);
   const [sourceCompanyIdObjections, setSourceCompanyIdObjections] = useState(null);
+  const [industryFilter, setIndustryFilter] = useState("all");
+  const [objectionIndustryFilter, setObjectionIndustryFilter] = useState("all");
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -182,19 +191,33 @@ export default function TemplateManager() {
     navigate(createPageUrl("CompanyTraining") + "?template_mode=true");
   };
 
-  // Group modules by category for display
-  const modulesByCategory = templateModules.reduce((acc, module) => {
+  // Filter modules by industry
+  const filteredModules = industryFilter === "all" 
+    ? templateModules 
+    : templateModules.filter(m => m.industry === industryFilter);
+
+  // Filter objections by industry
+  const filteredObjections = objectionIndustryFilter === "all"
+    ? templateObjections
+    : templateObjections.filter(o => o.industry === objectionIndustryFilter);
+
+  // Group filtered modules by category for display
+  const modulesByCategory = filteredModules.reduce((acc, module) => {
     if (!acc[module.category]) acc[module.category] = [];
     acc[module.category].push(module);
     return acc;
   }, {});
 
-  // Group objections by category
-  const objectionsByCategory = templateObjections.reduce((acc, obj) => {
+  // Group filtered objections by category
+  const objectionsByCategory = filteredObjections.reduce((acc, obj) => {
     if (!acc[obj.category]) acc[obj.category] = [];
     acc[obj.category].push(obj);
     return acc;
   }, {});
+
+  // Get unique industries
+  const moduleIndustries = [...new Set(templateModules.map(m => m.industry).filter(Boolean))];
+  const objectionIndustries = [...new Set(templateObjections.map(o => o.industry).filter(Boolean))];
 
   const totalLessons = templateLessons.length;
 
@@ -232,7 +255,7 @@ export default function TemplateManager() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Card className="border-0 shadow-md bg-gradient-to-br from-white to-blue-50">
               <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-blue-600">{templateModules.length}</div>
+                <div className="text-2xl font-bold text-blue-600">{filteredModules.length}</div>
                 <div className="text-xs text-slate-600">Template Modules</div>
               </CardContent>
             </Card>
@@ -250,7 +273,19 @@ export default function TemplateManager() {
             </Card>
           </div>
 
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-between items-center">
+            <Select value={industryFilter} onValueChange={setIndustryFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by Industry" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Industries</SelectItem>
+                {moduleIndustries.map(industry => (
+                  <SelectItem key={industry} value={industry}>{industry}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex gap-2">
             <Button
               onClick={() => setShowCreateDialog(true)}
               variant="outline"
@@ -259,13 +294,14 @@ export default function TemplateManager() {
               <Copy className="w-4 h-4 mr-2" />
               Clone from Company
             </Button>
-            <Button
-              onClick={() => navigate(createPageUrl("CompanyTraining") + "?template_mode=true")}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Module
-            </Button>
+              <Button
+                onClick={() => navigate(createPageUrl("CompanyTraining") + "?template_mode=true")}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New Module
+              </Button>
+            </div>
           </div>
 
           {/* Template Modules */}
@@ -291,6 +327,9 @@ export default function TemplateManager() {
                           <div>
                             <p className="font-medium text-slate-900">{module.title}</p>
                             <div className="flex gap-2 mt-1">
+                              {module.industry && (
+                                <Badge className="bg-blue-100 text-blue-700 text-xs">{module.industry}</Badge>
+                              )}
                               <Badge variant="outline" className="text-xs">{module.stage}</Badge>
                               <Badge variant="outline" className="text-xs">{module.difficulty}</Badge>
                               <span className="text-xs text-slate-600">{moduleLessons.length} lessons</span>
@@ -326,12 +365,18 @@ export default function TemplateManager() {
           </Card>
         ))}
 
-            {templateModules.length === 0 && (
+            {filteredModules.length === 0 && (
               <Card className="border-0 shadow-md">
                 <CardContent className="py-12 text-center">
                   <Layers className="w-16 h-16 mx-auto mb-3 text-slate-300" />
-                  <p className="text-lg font-medium text-slate-900">No templates yet</p>
-                  <p className="text-sm text-slate-600">Create templates from existing company content or build new ones</p>
+                  <p className="text-lg font-medium text-slate-900">
+                    {industryFilter === "all" ? "No templates yet" : `No ${industryFilter} templates found`}
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    {industryFilter === "all" 
+                      ? "Create templates from existing company content or build new ones"
+                      : "Try selecting a different industry"}
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -343,7 +388,7 @@ export default function TemplateManager() {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Card className="border-0 shadow-md bg-gradient-to-br from-white to-orange-50">
               <CardContent className="pt-6">
-                <div className="text-2xl font-bold text-orange-600">{templateObjections.length}</div>
+                <div className="text-2xl font-bold text-orange-600">{filteredObjections.length}</div>
                 <div className="text-xs text-slate-600">Template Objections</div>
               </CardContent>
             </Card>
@@ -355,15 +400,27 @@ export default function TemplateManager() {
             </Card>
           </div>
 
-          <div className="flex justify-end">
-            <Button
-              onClick={() => setShowObjectionDialog(true)}
-              variant="outline"
-              className="border-orange-200 text-orange-700"
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              Clone from Company
-            </Button>
+          <div className="flex justify-between items-center">
+            <Select value={objectionIndustryFilter} onValueChange={setObjectionIndustryFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by Industry" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Industries</SelectItem>
+                {objectionIndustries.map(industry => (
+                  <SelectItem key={industry} value={industry}>{industry}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+              <Button
+                onClick={() => setShowObjectionDialog(true)}
+                variant="outline"
+                className="border-orange-200 text-orange-700"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Clone from Company
+              </Button>
+            </div>
           </div>
 
           {/* Template Objections */}
@@ -384,6 +441,9 @@ export default function TemplateManager() {
                         <div className="flex-1">
                           <p className="font-medium text-slate-900 italic">"{objection.objection_text}"</p>
                           <div className="flex gap-2 mt-1">
+                            {objection.industry && (
+                              <Badge className="bg-orange-100 text-orange-700 text-xs">{objection.industry}</Badge>
+                            )}
                             <Badge variant="outline" className="text-xs">{objection.stage}</Badge>
                             <Badge variant="outline" className="text-xs">{objection.difficulty}</Badge>
                             {objection.frequency && (
@@ -409,12 +469,18 @@ export default function TemplateManager() {
               </Card>
             ))}
 
-            {templateObjections.length === 0 && (
+            {filteredObjections.length === 0 && (
               <Card className="border-0 shadow-md">
                 <CardContent className="py-12 text-center">
                   <MessageSquare className="w-16 h-16 mx-auto mb-3 text-slate-300" />
-                  <p className="text-lg font-medium text-slate-900">No objection templates yet</p>
-                  <p className="text-sm text-slate-600">Clone objections from existing companies to build your library</p>
+                  <p className="text-lg font-medium text-slate-900">
+                    {objectionIndustryFilter === "all" ? "No objection templates yet" : `No ${objectionIndustryFilter} objections found`}
+                  </p>
+                  <p className="text-sm text-slate-600">
+                    {objectionIndustryFilter === "all"
+                      ? "Clone objections from existing companies to build your library"
+                      : "Try selecting a different industry"}
+                  </p>
                 </CardContent>
               </Card>
             )}
