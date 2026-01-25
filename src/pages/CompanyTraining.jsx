@@ -375,8 +375,11 @@ export default function CompanyTraining() {
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Solar">Solar</SelectItem>
-                      <SelectItem value="Service Business">Service Business</SelectItem>
-                      <SelectItem value="General Sales">General Sales</SelectItem>
+                      <SelectItem value="Service Business General">Service Business General</SelectItem>
+                      <SelectItem value="Roofing">Roofing</SelectItem>
+                      <SelectItem value="Painting">Painting</SelectItem>
+                      <SelectItem value="Plumbing">Plumbing</SelectItem>
+                      <SelectItem value="Home Improvement">Home Improvement</SelectItem>
                       <SelectItem value="Other">Other</SelectItem>
                     </SelectContent>
                   </Select>

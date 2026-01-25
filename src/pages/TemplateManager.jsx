@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -42,6 +44,20 @@ export default function TemplateManager() {
   const [sourceCompanyIdObjections, setSourceCompanyIdObjections] = useState(null);
   const [industryFilter, setIndustryFilter] = useState("all");
   const [objectionIndustryFilter, setObjectionIndustryFilter] = useState("all");
+  const [showCreateObjectionForm, setShowCreateObjectionForm] = useState(false);
+  const [newObjection, setNewObjection] = useState({
+    industry: "Solar",
+    objection_text: "",
+    category: "Price",
+    stage: "Door Approach",
+    rebuttal_script: "",
+    best_practices: [],
+    example_responses: [],
+    related_media_url: "",
+    difficulty: "Medium",
+    frequency: "Common",
+    tags: []
+  });
 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -167,6 +183,27 @@ export default function TemplateManager() {
     mutationFn: (objectionId) => base44.entities.Objection.delete(objectionId),
     onSuccess: () => {
       queryClient.invalidateQueries(['templateObjections']);
+    }
+  });
+
+  const createObjectionMutation = useMutation({
+    mutationFn: (objectionData) => base44.entities.Objection.create(objectionData),
+    onSuccess: () => {
+      queryClient.invalidateQueries(['templateObjections']);
+      setShowCreateObjectionForm(false);
+      setNewObjection({
+        industry: "Solar",
+        objection_text: "",
+        category: "Price",
+        stage: "Door Approach",
+        rebuttal_script: "",
+        best_practices: [],
+        example_responses: [],
+        related_media_url: "",
+        difficulty: "Medium",
+        frequency: "Common",
+        tags: []
+      });
     }
   });
 
@@ -412,14 +449,23 @@ export default function TemplateManager() {
                 ))}
               </SelectContent>
             </Select>
-            <Button
-              onClick={() => setShowObjectionDialog(true)}
-              variant="outline"
-              className="border-orange-200 text-orange-700"
-            >
-              <Copy className="w-4 h-4 mr-2" />
-              Clone from Company
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setShowObjectionDialog(true)}
+                variant="outline"
+                className="border-orange-200 text-orange-700"
+              >
+                <Copy className="w-4 h-4 mr-2" />
+                Clone from Company
+              </Button>
+              <Button
+                onClick={() => setShowCreateObjectionForm(true)}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New Objection
+              </Button>
+            </div>
           </div>
 
           {/* Template Objections */}
@@ -523,6 +569,131 @@ export default function TemplateManager() {
               className="bg-blue-600"
             >
               {createTemplateFromCompany.isPending ? "Cloning..." : "Clone Templates"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create New Objection Dialog */}
+      <Dialog open={showCreateObjectionForm} onOpenChange={setShowCreateObjectionForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Objection Template</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label>Industry *</Label>
+              <Select value={newObjection.industry} onValueChange={(v) => setNewObjection({ ...newObjection, industry: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Solar">Solar</SelectItem>
+                  <SelectItem value="Service Business General">Service Business General</SelectItem>
+                  <SelectItem value="Roofing">Roofing</SelectItem>
+                  <SelectItem value="Painting">Painting</SelectItem>
+                  <SelectItem value="Plumbing">Plumbing</SelectItem>
+                  <SelectItem value="Home Improvement">Home Improvement</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Objection Text *</Label>
+              <Input
+                placeholder='"I need to think about it"'
+                value={newObjection.objection_text}
+                onChange={(e) => setNewObjection({ ...newObjection, objection_text: e.target.value })}
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Category *</Label>
+                <Select value={newObjection.category} onValueChange={(v) => setNewObjection({ ...newObjection, category: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Price">Price</SelectItem>
+                    <SelectItem value="Timing">Timing</SelectItem>
+                    <SelectItem value="Decision Maker">Decision Maker</SelectItem>
+                    <SelectItem value="Competition">Competition</SelectItem>
+                    <SelectItem value="Trust">Trust</SelectItem>
+                    <SelectItem value="Technical">Technical</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Stage *</Label>
+                <Select value={newObjection.stage} onValueChange={(v) => setNewObjection({ ...newObjection, stage: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Door Approach">Door Approach</SelectItem>
+                    <SelectItem value="Qualifying">Qualifying</SelectItem>
+                    <SelectItem value="Presentation">Presentation</SelectItem>
+                    <SelectItem value="Close">Close</SelectItem>
+                    <SelectItem value="Follow-up">Follow-up</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label>Rebuttal Script *</Label>
+              <Textarea
+                placeholder="Your response to this objection..."
+                value={newObjection.rebuttal_script}
+                onChange={(e) => setNewObjection({ ...newObjection, rebuttal_script: e.target.value })}
+                rows={4}
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <Label>Difficulty</Label>
+                <Select value={newObjection.difficulty} onValueChange={(v) => setNewObjection({ ...newObjection, difficulty: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Easy">Easy</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="Hard">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Frequency</Label>
+                <Select value={newObjection.frequency} onValueChange={(v) => setNewObjection({ ...newObjection, frequency: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Very Common">Very Common</SelectItem>
+                    <SelectItem value="Common">Common</SelectItem>
+                    <SelectItem value="Occasional">Occasional</SelectItem>
+                    <SelectItem value="Rare">Rare</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label>Related Media URL (Optional)</Label>
+              <Input
+                placeholder="https://..."
+                value={newObjection.related_media_url}
+                onChange={(e) => setNewObjection({ ...newObjection, related_media_url: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateObjectionForm(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => createObjectionMutation.mutate(newObjection)}
+              disabled={!newObjection.objection_text || !newObjection.rebuttal_script || createObjectionMutation.isPending}
+              className="bg-orange-600"
+            >
+              {createObjectionMutation.isPending ? "Creating..." : "Create Objection"}
             </Button>
           </DialogFooter>
         </DialogContent>
