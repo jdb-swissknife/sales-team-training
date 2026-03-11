@@ -147,7 +147,7 @@ export default function Layout({ children }) {
           --accent-foreground: 210 40% 98%;
         }
       `}</style>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20">
+      <div className="h-screen overflow-hidden flex w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20">
         <Sidebar className="border-r border-slate-200/60 backdrop-blur-sm">
           <SidebarHeader className="border-b border-slate-200/60 p-6">
             <div className="flex items-center gap-3">
