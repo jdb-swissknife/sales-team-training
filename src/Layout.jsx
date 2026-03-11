@@ -107,6 +107,11 @@ function LayoutContent({ children, user, company, platformNavItems, regularNavIt
   const location = useLocation();
   const { setOpenMobile } = useSidebar();
 
+  // Auto-close mobile sidebar whenever the route changes
+  useEffect(() => {
+    setOpenMobile(false);
+  }, [location.pathname]);
+
   const handleNavClick = () => {
     setOpenMobile(false);
   };
