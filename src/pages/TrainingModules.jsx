@@ -25,9 +25,9 @@ export default function TrainingModules() {
     queryFn: async () => {
       const user = await base44.auth.me();
       const allModules = await base44.entities.TrainingModule.list('order');
-      // Filter by company_id and exclude welcome module
+      // Show company-specific modules OR master library modules (no company_id)
       return allModules.filter(m => 
-        m.company_id === user.company_id && 
+        (!m.company_id || m.company_id === user.company_id) && 
         m.title !== "Welcome to Solar Door-to-Door"
       );
     },
