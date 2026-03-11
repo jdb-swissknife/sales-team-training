@@ -25,11 +25,11 @@ export default function TrainingModules() {
     queryFn: async () => {
       const user = await base44.auth.me();
       const allModules = await base44.entities.TrainingModule.list('order');
-      // Show company-specific modules OR master library modules (no company_id)
-      return allModules.filter(m => 
-        (!m.company_id || m.company_id === user.company_id) && 
-        m.title !== "Welcome to Solar Door-to-Door"
-      );
+      // If user has no company, show all; otherwise show their company + master library
+      return allModules.filter(m => {
+        if (!user.company_id) return m.title !== "Welcome to Solar Door-to-Door";
+        return (!m.company_id || m.company_id === user.company_id) && m.title !== "Welcome to Solar Door-to-Door";
+      });
     },
     initialData: []
   });

@@ -23,7 +23,8 @@ export default function ObjectionLibrary() {
     queryFn: async () => {
       const user = await base44.auth.me();
       const allObjections = await base44.entities.Objection.list();
-      // Show company-specific objections OR master library objections (no company_id)
+      // If user has no company, show all; otherwise show their company + master library
+      if (!user.company_id) return allObjections;
       return allObjections.filter(o => !o.company_id || o.company_id === user.company_id);
     },
     initialData: []
