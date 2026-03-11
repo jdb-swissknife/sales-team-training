@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   GraduationCap
 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 export default function TrainingModules() {
   const navigate = useNavigate();
@@ -68,15 +68,21 @@ export default function TrainingModules() {
       </div>
 
       {/* Category Filters */}
-      <Tabs value={selectedCategory} onValueChange={setSelectedCategory} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 bg-slate-100">
-          {categories.map((cat) => (
-            <TabsTrigger key={cat} value={cat} className="capitalize">
-              {cat === "all" ? "All Modules" : cat}
-            </TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-1 px-1">
+        {categories.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+              selectedCategory === cat
+                ? "bg-blue-600 text-white shadow-md"
+                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}
+          >
+            {cat === "all" ? "All Modules" : cat}
+          </button>
+        ))}
+      </div>
 
       {/* Module Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
