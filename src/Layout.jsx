@@ -28,6 +28,7 @@ import {
   SidebarFooter,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar";
 
 const navigationItems = [
