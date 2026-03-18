@@ -278,7 +278,7 @@ export default function Layout({ children }) {
   const regularNavItems = filteredNavItems.filter(item => !item.section);
 
   return (
-    <SidebarProvider style={{ height: "100dvh", overflow: "hidden" }}>
+    <>
       <style>{`
         :root {
           --primary: 217 91% 30%;
@@ -286,17 +286,26 @@ export default function Layout({ children }) {
           --accent: 25 95% 53%;
           --accent-foreground: 210 40% 98%;
         }
+        .sidebar-provider-wrapper {
+          min-height: 100dvh !important;
+          height: 100dvh !important;
+          overflow: hidden !important;
+          display: flex !important;
+          width: 100% !important;
+        }
       `}</style>
-      <LayoutContent
-        user={user}
-        company={company}
-        platformNavItems={platformNavItems}
-        regularNavItems={regularNavItems}
-        userRole={userRole}
-        handleLogout={handleLogout}
-      >
-        {children}
-      </LayoutContent>
-    </SidebarProvider>
+      <SidebarProvider className="sidebar-provider-wrapper">
+        <LayoutContent
+          user={user}
+          company={company}
+          platformNavItems={platformNavItems}
+          regularNavItems={regularNavItems}
+          userRole={userRole}
+          handleLogout={handleLogout}
+        >
+          {children}
+        </LayoutContent>
+      </SidebarProvider>
+    </>
   );
 }
