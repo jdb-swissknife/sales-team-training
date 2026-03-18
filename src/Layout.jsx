@@ -116,7 +116,7 @@ function LayoutContent({ children, user, company, platformNavItems, regularNavIt
   };
 
   return (
-    <div className="h-screen overflow-hidden flex w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20">
+    <div className="flex w-full h-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-orange-50/20" style={{ height: "100dvh", overflow: "hidden" }}>
       <Sidebar className="border-r border-slate-200/60 backdrop-blur-sm">
         <SidebarHeader className="border-b border-slate-200/60 p-6">
           <div className="flex items-center gap-3">
