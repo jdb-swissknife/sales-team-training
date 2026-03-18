@@ -278,7 +278,7 @@ export default function Layout({ children }) {
   const regularNavItems = filteredNavItems.filter(item => !item.section);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider style={{ height: "100dvh", overflow: "hidden" }}>
       <style>{`
         :root {
           --primary: 217 91% 30%;
