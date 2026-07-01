@@ -12,6 +12,9 @@ import Onboarding from '@/components/Onboarding';
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
+const routerBasename = window.location.pathname.startsWith('/sales-team-training')
+  ? '/sales-team-training'
+  : '';
 
 function AuthenticatedApp() {
   const { isLoading, isOnboarded, user } = useAuth();
@@ -53,7 +56,7 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
+        <Router basename={routerBasename}>
           <NavigationTracker />
           <AuthenticatedApp />
         </Router>
