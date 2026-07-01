@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,6 +24,13 @@ export default function Onboarding() {
   const [name, setName] = useState("");
   const [team, setTeam] = useState("");
   const [role, setRole] = useState("rep");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const repName = params.get("repName");
+    if (repName && !name) setName(repName);
+    if (params.get("source") === "route-blitzer" && !team) setTeam("Atlanta HVAC");
+  }, []);
 
   const handleFinish = async () => {
     await login({

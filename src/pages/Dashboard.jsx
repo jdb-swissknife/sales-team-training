@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { dataStore } from "@/lib/dataStore";
 import { useAuth } from "@/lib/AuthContext";
@@ -20,6 +21,7 @@ import {
   Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getRouteBlitzerContext, fetchRouteBlitzerXpSummary } from "@/lib/routeBlitzerXp";
 import { format } from "date-fns";
 
 function StatTile({ icon: Icon, label, value, sub, accent = "amber" }) {
@@ -74,7 +76,7 @@ function ActionCard({ to, icon: Icon, title, desc, tone }) {
 }
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
 
   const { data: fieldLogs = [] } = useQuery({
     queryKey: ["fieldLogs", user?.id],
@@ -94,6 +96,15 @@ export default function Dashboard() {
     enabled: !!user?.id,
   });
 
+  const routeBlitzer = getRouteBlitzerContext(user);
+  const { data: rbXp, isError: rbError } = useQuery({
+    queryKey: ["routeBlitzerXp", routeBlitzer.apiBase, routeBlitzer.repName],
+    queryFn: () => fetchRouteBlitzerXpSummary(routeBlitzer),
+    enabled: !!routeBlitzer.enabled,
+    staleTime: 60_000,
+    retry: 1,
+  });
+
   const last30Days = fieldLogs.filter((log) => {
     const d = new Date(log.date);
     const cutoff = new Date();
@@ -101,17 +112,28 @@ export default function Dashboard() {
     return d >= cutoff;
   });
 
-  const totalDoors = last30Days.reduce((s, l) => s + (l.doors_knocked || 0), 0);
-  const totalConversations = last30Days.reduce((s, l) => s + (l.conversations || 0), 0);
-  const totalAppointments = last30Days.reduce((s, l) => s + (l.appointments_set || 0), 0);
-  const totalClosures = last30Days.reduce((s, l) => s + (l.closures || 0), 0);
-  const convRate = totalDoors > 0 ? ((totalConversations / totalDoors) * 100).toFixed(1) : "0.0";
-  const closeRate = totalAppointments > 0 ? ((totalClosures / totalAppointments) * 100).toFixed(1) : "0.0";
+  useEffect(() => {
+    if (!rbXp) return;
+    if (user?.xp === rbXp.xp && user?.level === rbXp.level && user?.streak_days === rbXp.streakDays) return;
+    updateUser({ xp: rbXp.xp, level: rbXp.level, streak_days: rbXp.streakDays });
+  }, [rbXp?.xp, rbXp?.level, rbXp?.streakDays]);
 
-  const xp = user?.xp || 0;
-  const level = user?.level || 1;
+  const localDoors = last30Days.reduce((s, l) => s + (l.doors_knocked || 0), 0);
+  const localConversations = last30Days.reduce((s, l) => s + (l.conversations || 0), 0);
+  const localAppointments = last30Days.reduce((s, l) => s + (l.appointments_set || 0), 0);
+  const localClosures = last30Days.reduce((s, l) => s + (l.closures || 0), 0);
+
+  const totalDoors = rbXp?.stats?.totalVisits ?? localDoors;
+  const totalConversations = rbXp?.stats?.conversations ?? localConversations;
+  const totalAppointments = rbXp?.stats?.callbacks ?? localAppointments;
+  const totalClosures = rbXp?.stats?.books ?? localClosures;
+  const convRate = rbXp?.stats?.contactRate?.toFixed?.(1) ?? (totalDoors > 0 ? ((totalConversations / totalDoors) * 100).toFixed(1) : "0.0");
+  const closeRate = rbXp?.stats?.bookRate?.toFixed?.(1) ?? (totalAppointments > 0 ? ((totalClosures / totalAppointments) * 100).toFixed(1) : "0.0");
+
+  const xp = rbXp?.xp ?? user?.xp ?? 0;
+  const level = rbXp?.level ?? user?.level ?? 1;
   const xpInLevel = xp % 100;
-  const streak = user?.streak_days || 0;
+  const streak = rbXp?.streakDays ?? user?.streak_days ?? 0;
   const firstName = user?.full_name?.split(" ")[0] || "Rep";
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Morning" : hour < 18 ? "Afternoon" : "Evening";
@@ -133,7 +155,7 @@ export default function Dashboard() {
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 text-sm text-slate-300">
               <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,.8)]" />
-              Team cockpit active
+              {rbXp ? `Synced from Route Blitzer · ${rbXp.repName}` : rbError ? "Route Blitzer sync unavailable · using local Coach data" : "Team cockpit active"}
             </div>
             <div>
               <p className="mv-kicker mb-3 text-xs">{greeting}, {firstName}</p>
@@ -150,7 +172,7 @@ export default function Dashboard() {
             <div className="mb-5 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-white">Level Progress</p>
-                <p className="text-xs text-slate-500">Gamified daily execution</p>
+                <p className="text-xs text-slate-500">{rbXp ? "Real field activity from Route Blitzer" : "Gamified daily execution"}</p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 to-orange-500 shadow-[0_12px_35px_rgba(251,146,60,.25)]">
                 <Trophy className="h-6 w-6 text-white" />
@@ -193,8 +215,8 @@ export default function Dashboard() {
         <div className="mv-card rounded-[2rem] p-5 md:p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold tracking-tight text-white">Recent Field Logs</h2>
-              <p className="mt-1 text-sm text-slate-500">Daily reps, not vague progress.</p>
+              <h2 className="text-xl font-semibold tracking-tight text-white">{rbXp ? "Recent XP Events" : "Recent Field Logs"}</h2>
+              <p className="mt-1 text-sm text-slate-500">{rbXp ? "Automatically generated from Route Blitzer." : "Daily reps, not vague progress."}</p>
             </div>
             <Link to={createPageUrl("FieldLogs")}>
               <Button variant="ghost" size="sm" className="mv-button-ghost rounded-xl">View all</Button>
@@ -202,27 +224,45 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-3">
-            {fieldLogs.slice(0, 5).map((log) => (
-              <div key={log.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 transition-colors hover:bg-white/[0.055]">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <div className="font-semibold text-white">{format(new Date(log.date), "MMM d")}</div>
-                    <div className="mt-1 text-xs text-slate-500">{log.neighborhood || "No neighborhood noted"}</div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div><div className="font-mono text-lg text-white">{log.doors_knocked || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">doors</div></div>
-                    <div><div className="font-mono text-lg text-sky-300">{log.conversations || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">talks</div></div>
-                    <div><div className="font-mono text-lg text-emerald-300">{log.closures || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">booked</div></div>
+            {rbXp?.recentEvents?.length > 0 ? (
+              rbXp.recentEvents.map((event) => (
+                <div key={event.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 transition-colors hover:bg-white/[0.055]">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="font-semibold text-white">{event.label}</div>
+                      <div className="mt-1 text-xs text-slate-500">{format(new Date(event.occurredAt), "MMM d · h:mm a")}</div>
+                    </div>
+                    <div className="rounded-full border border-amber-300/15 bg-amber-300/10 px-3 py-1.5 font-mono text-sm text-amber-200">
+                      +{event.xp} XP
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            {fieldLogs.length === 0 && (
-              <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.025] p-10 text-center">
-                <Clipboard className="mx-auto mb-3 h-10 w-10 text-slate-600" />
-                <p className="font-semibold text-white">No logs yet</p>
-                <p className="mt-1 text-sm text-slate-500">Log the first field day to start building the scoreboard.</p>
-              </div>
+              ))
+            ) : (
+              <>
+                {fieldLogs.slice(0, 5).map((log) => (
+                  <div key={log.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 transition-colors hover:bg-white/[0.055]">
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <div className="font-semibold text-white">{format(new Date(log.date), "MMM d")}</div>
+                        <div className="mt-1 text-xs text-slate-500">{log.neighborhood || "No neighborhood noted"}</div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div><div className="font-mono text-lg text-white">{log.doors_knocked || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">doors</div></div>
+                        <div><div className="font-mono text-lg text-sky-300">{log.conversations || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">talks</div></div>
+                        <div><div className="font-mono text-lg text-emerald-300">{log.closures || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">booked</div></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {fieldLogs.length === 0 && (
+                  <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.025] p-10 text-center">
+                    <Clipboard className="mx-auto mb-3 h-10 w-10 text-slate-600" />
+                    <p className="font-semibold text-white">No logs yet</p>
+                    <p className="mt-1 text-sm text-slate-500">{rbXp ? "Route Blitzer is connected, but this rep has no recent XP events yet." : "Log the first field day to start building the scoreboard."}</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
