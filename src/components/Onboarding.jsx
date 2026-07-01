@@ -44,19 +44,45 @@ export default function Onboarding() {
     <div className="mv-shell mv-grid-bg min-h-screen overflow-hidden px-5 py-8 text-white">
       <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-10 lg:grid-cols-[1.04fr_.96fr]">
         <section className="relative z-10 space-y-8">
+          <div className="flex items-center gap-3">
+            <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-300/20 bg-amber-300/[0.08] shadow-[0_18px_45px_rgba(251,146,60,.25)]">
+              <img
+                src={import.meta.env.BASE_URL + "mindvault-mascot.png"}
+                alt="MindVault mascot"
+                className="h-12 w-12 object-contain"
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
+              />
+            </div>
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-amber-300/90">MindVault Studio</p>
+              <p className="mt-0.5 text-base font-semibold tracking-tight text-white">Coach · HVAC Sales OS</p>
+            </div>
+          </div>
+
           <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 text-sm text-slate-300 shadow-inner">
             <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,.8)]" />
             Built for Erica’s HVAC D2D team
           </div>
 
           <div className="space-y-5">
-            <p className="mv-kicker text-xs">MindVault Coach</p>
             <h1 className="max-w-3xl text-5xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-7xl">
               Train like the best rep on the team.
             </h1>
             <p className="max-w-xl text-lg leading-8 text-slate-400">
               A fast, game-like sales training cockpit for reps moving from solar into HVAC: practice, log, learn, and build momentum every day.
             </p>
+          </div>
+
+          <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3">
+            <img
+              src={import.meta.env.BASE_URL + "mindvault-logo.png"}
+              alt="MindVault Studio"
+              className="h-10 w-auto rounded-md bg-slate-900/40 px-1"
+            />
+            <div className="text-sm leading-tight text-slate-400">
+              Built by <span className="font-semibold text-white">Mind<span className="text-[#c2703e]">Vault</span> Studio</span> · Minneapolis, MN
+              <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">Custom AI agents · Managed</div>
+            </div>
           </div>
 
           <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
@@ -79,11 +105,13 @@ export default function Onboarding() {
           <div className="mv-card relative rounded-[2rem] p-6 md:p-8">
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 via-orange-500 to-rose-500 shadow-[0_16px_45px_rgba(251,146,60,.25)]">
-                  <Flame className="h-6 w-6 text-white" />
-                </div>
+                <img
+                  src={import.meta.env.BASE_URL + "mindvault-mascot.png"}
+                  alt=""
+                  className="h-11 w-11 rounded-xl object-contain"
+                />
                 <div>
-                  <p className="text-sm font-semibold text-white">Set up your cockpit</p>
+                  <p className="text-sm font-semibold text-white">Mind<span className="text-[#c2703e]">Vault</span> Coach</p>
                   <p className="text-xs text-slate-500">Takes about 20 seconds</p>
                 </div>
               </div>
