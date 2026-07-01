@@ -3,7 +3,20 @@ import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Flame, Zap, Trophy, Users, ArrowRight, Check } from "lucide-react";
+import { Flame, Zap, Trophy, Users, ArrowRight, Check, Sparkles, Target, MessageSquare } from "lucide-react";
+
+const roleCards = [
+  {
+    id: "rep",
+    title: "Sales Rep",
+    desc: "Training, field logs, practice, objections, streaks.",
+  },
+  {
+    id: "coach",
+    title: "Coach / Team Lead",
+    desc: "Rep tools plus review queues and performance views.",
+  },
+];
 
 export default function Onboarding() {
   const { login } = useAuth();
@@ -15,206 +28,154 @@ export default function Onboarding() {
   const handleFinish = async () => {
     await login({
       full_name: name.trim() || "New Rep",
-      team: team.trim() || "Unassigned",
+      team: team.trim() || "Atlanta HVAC",
       role,
     });
   };
 
-  const steps = [
-    // Step 0: Welcome
-    {
-      content: (
-        <div className="text-center space-y-6">
-          <div className="w-20 h-20 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center shadow-xl shadow-orange-500/30 mx-auto">
-            <Flame className="w-10 h-10 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-extrabold text-white mb-2">
-              Welcome to MindVault
-            </h1>
-            <p className="text-slate-400 text-lg">
-              Your sales performance platform.
-            </p>
-            <p className="text-slate-500 text-sm mt-3 max-w-md mx-auto">
-              Train smarter, track your progress, level up your skills, and
-              close more deals. Built for door-to-door pros who want to be the best.
-            </p>
-          </div>
-          <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto pt-4">
-            <div className="text-center">
-              <Zap className="w-6 h-6 text-amber-400 mx-auto mb-1" />
-              <p className="text-xs text-slate-500">Earn XP</p>
-            </div>
-            <div className="text-center">
-              <Trophy className="w-6 h-6 text-amber-400 mx-auto mb-1" />
-              <p className="text-xs text-slate-500">Level Up</p>
-            </div>
-            <div className="text-center">
-              <Flame className="w-6 h-6 text-amber-400 mx-auto mb-1" />
-              <p className="text-xs text-slate-500">Build Streaks</p>
-            </div>
-          </div>
-          <Button
-            onClick={() => setStep(1)}
-            size="lg"
-            className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold shadow-lg shadow-orange-500/30"
-          >
-            Let's Go
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
-        </div>
-      ),
-    },
-    // Step 1: Name + Team
-    {
-      content: (
-        <div className="space-y-6">
-          <div className="text-center">
-            <Users className="w-12 h-12 text-amber-400 mx-auto mb-3" />
-            <h2 className="text-2xl font-bold text-white">Tell us about you</h2>
-            <p className="text-slate-400 mt-1">
-              So we can personalize your experience
-            </p>
-          </div>
-          <div className="space-y-4 max-w-sm mx-auto">
-            <div>
-              <Label htmlFor="name" className="text-slate-300 font-medium">
-                Your Name
-              </Label>
-              <Input
-                id="name"
-                placeholder="e.g. Bob Smith"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white placeholder:text-slate-600"
-                autoFocus
-              />
-            </div>
-            <div>
-              <Label htmlFor="team" className="text-slate-300 font-medium">
-                Team Name
-              </Label>
-              <Input
-                id="team"
-                placeholder="e.g. WolfPack Atlanta"
-                value={team}
-                onChange={(e) => setTeam(e.target.value)}
-                className="mt-1 bg-slate-800 border-slate-700 text-white placeholder:text-slate-600"
-              />
-            </div>
-          </div>
-          <div className="flex gap-3 justify-center">
-            <Button
-              variant="ghost"
-              onClick={() => setStep(0)}
-              className="text-slate-400 hover:text-white"
-            >
-              Back
-            </Button>
-            <Button
-              onClick={() => setStep(2)}
-              className="bg-gradient-to-r from-amber-500 to-orange-600 text-white"
-              disabled={!name.trim()}
-            >
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          </div>
-        </div>
-      ),
-    },
-    // Step 2: Role + Confirm
-    {
-      content: (
-        <div className="space-y-6">
-          <div className="text-center">
-            <Trophy className="w-12 h-12 text-amber-400 mx-auto mb-3" />
-            <h2 className="text-2xl font-bold text-white">Your Role</h2>
-            <p className="text-slate-400 mt-1">This unlocks different features</p>
-          </div>
-          <div className="space-y-3 max-w-sm mx-auto">
-            <button
-              onClick={() => setRole("rep")}
-              className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                role === "rep"
-                  ? "border-amber-500 bg-amber-500/10"
-                  : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-white">Sales Rep</p>
-                  <p className="text-xs text-slate-400">
-                    Training, field logs, practice, objections
-                  </p>
-                </div>
-                {role === "rep" && <Check className="w-5 h-5 text-amber-500" />}
-              </div>
-            </button>
-            <button
-              onClick={() => setRole("coach")}
-              className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
-                role === "coach"
-                  ? "border-amber-500 bg-amber-500/10"
-                  : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-white">Coach / Team Lead</p>
-                  <p className="text-xs text-slate-400">
-                    Everything reps get + review and analytics
-                  </p>
-                </div>
-                {role === "coach" && <Check className="w-5 h-5 text-amber-500" />}
-              </div>
-            </button>
-          </div>
-          <div className="flex gap-3 justify-center">
-            <Button
-              variant="ghost"
-              onClick={() => setStep(1)}
-              className="text-slate-400 hover:text-white"
-            >
-              Back
-            </Button>
-            <Button
-              onClick={handleFinish}
-              className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-bold"
-            >
-              <Check className="w-4 h-4 mr-2" />
-              Start Training
-            </Button>
-          </div>
-        </div>
-      ),
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-6">
-      <div className="w-full max-w-lg">
-        {/* Progress dots */}
-        <div className="flex justify-center gap-2 mb-8">
-          {steps.map((_, i) => (
-            <div
-              key={i}
-              className={`h-2 rounded-full transition-all ${
-                i === step
-                  ? "w-8 bg-amber-500"
-                  : i < step
-                  ? "w-2 bg-amber-700"
-                  : "w-2 bg-slate-700"
-              }`}
-            />
-          ))}
-        </div>
-        <div className="bg-slate-800/50 backdrop-blur rounded-2xl border border-slate-700/50 p-8 shadow-2xl">
-          {steps[step].content}
-        </div>
-        <p className="text-center text-slate-600 text-xs mt-6">
-          MindVault Sales Performance Platform
-        </p>
+    <div className="mv-shell mv-grid-bg min-h-screen overflow-hidden px-5 py-8 text-white">
+      <div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl items-center gap-10 lg:grid-cols-[1.04fr_.96fr]">
+        <section className="relative z-10 space-y-8">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 text-sm text-slate-300 shadow-inner">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,.8)]" />
+            Built for Erica’s HVAC D2D team
+          </div>
+
+          <div className="space-y-5">
+            <p className="mv-kicker text-xs">MindVault Coach</p>
+            <h1 className="max-w-3xl text-5xl font-semibold leading-[0.96] tracking-[-0.055em] text-white md:text-7xl">
+              Train like the best rep on the team.
+            </h1>
+            <p className="max-w-xl text-lg leading-8 text-slate-400">
+              A fast, game-like sales training cockpit for reps moving from solar into HVAC: practice, log, learn, and build momentum every day.
+            </p>
+          </div>
+
+          <div className="grid max-w-2xl gap-3 sm:grid-cols-3">
+            {[
+              { icon: Zap, label: "Earn XP", value: "+2 per door" },
+              { icon: Trophy, label: "Level Up", value: "100 XP tiers" },
+              { icon: Flame, label: "Keep Streaks", value: "Daily motion" },
+            ].map((item) => (
+              <div key={item.label} className="mv-card-soft rounded-2xl p-4">
+                <item.icon className="mb-4 h-5 w-5 text-amber-300" />
+                <p className="text-sm font-semibold text-white">{item.label}</p>
+                <p className="mt-1 font-mono text-xs text-slate-500">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="relative z-10">
+          <div className="absolute -inset-8 rounded-[2rem] bg-gradient-to-br from-amber-500/20 via-orange-500/10 to-indigo-500/20 blur-3xl" />
+          <div className="mv-card relative rounded-[2rem] p-6 md:p-8">
+            <div className="mb-8 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 via-orange-500 to-rose-500 shadow-[0_16px_45px_rgba(251,146,60,.25)]">
+                  <Flame className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">Set up your cockpit</p>
+                  <p className="text-xs text-slate-500">Takes about 20 seconds</p>
+                </div>
+              </div>
+              <div className="font-mono text-xs text-slate-500">0{step + 1}/03</div>
+            </div>
+
+            <div className="mb-8 grid grid-cols-3 gap-2">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                  <div className={`h-full rounded-full transition-all ${i <= step ? "w-full bg-gradient-to-r from-amber-300 to-orange-400" : "w-0"}`} />
+                </div>
+              ))}
+            </div>
+
+            {step === 0 && (
+              <div className="space-y-8">
+                <div>
+                  <Sparkles className="mb-4 h-8 w-8 text-amber-300" />
+                  <h2 className="text-3xl font-semibold tracking-tight text-white">Welcome in.</h2>
+                  <p className="mt-3 text-slate-400">We’ll tune the app around your name, team, and role, then drop you into the command dashboard.</p>
+                </div>
+                <div className="grid gap-3">
+                  {[
+                    { icon: Target, text: "Field activity becomes progress, not paperwork." },
+                    { icon: MessageSquare, text: "Practice reps get a clean lab for objections and pitch work." },
+                    { icon: Trophy, text: "Coaches get a simple way to see effort and skill-building." },
+                  ].map((item) => (
+                    <div key={item.text} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] p-3 text-sm text-slate-300">
+                      <item.icon className="h-4 w-4 text-amber-300" />
+                      {item.text}
+                    </div>
+                  ))}
+                </div>
+                <Button onClick={() => setStep(1)} size="lg" className="mv-button-primary w-full rounded-xl font-semibold">
+                  Start Setup <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            )}
+
+            {step === 1 && (
+              <div className="space-y-6">
+                <div>
+                  <Users className="mb-4 h-8 w-8 text-amber-300" />
+                  <h2 className="text-3xl font-semibold tracking-tight text-white">Who’s training?</h2>
+                  <p className="mt-3 text-slate-400">This keeps the experience personal and makes the dashboard feel owned.</p>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name" className="text-sm font-medium text-slate-300">Your Name</Label>
+                    <Input id="name" placeholder="e.g. Bob Smith" value={name} onChange={(e) => setName(e.target.value)} className="mt-2 h-12 rounded-xl" autoFocus />
+                  </div>
+                  <div>
+                    <Label htmlFor="team" className="text-sm font-medium text-slate-300">Team Name</Label>
+                    <Input id="team" placeholder="e.g. Atlanta HVAC" value={team} onChange={(e) => setTeam(e.target.value)} className="mt-2 h-12 rounded-xl" />
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button variant="ghost" onClick={() => setStep(0)} className="mv-button-ghost flex-1 rounded-xl">Back</Button>
+                  <Button onClick={() => setStep(2)} className="mv-button-primary flex-1 rounded-xl" disabled={!name.trim()}>
+                    Next <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-6">
+                <div>
+                  <Trophy className="mb-4 h-8 w-8 text-amber-300" />
+                  <h2 className="text-3xl font-semibold tracking-tight text-white">Choose your mode.</h2>
+                  <p className="mt-3 text-slate-400">You can change this later. Reps get game loops; coaches get the team layer.</p>
+                </div>
+                <div className="space-y-3">
+                  {roleCards.map((card) => (
+                    <button
+                      key={card.id}
+                      onClick={() => setRole(card.id)}
+                      className={`w-full rounded-2xl border p-4 text-left transition-all ${role === card.id ? "border-amber-300/70 bg-amber-300/10" : "border-white/10 bg-white/[0.035] hover:bg-white/[0.06]"}`}
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="font-semibold text-white">{card.title}</p>
+                          <p className="mt-1 text-sm text-slate-500">{card.desc}</p>
+                        </div>
+                        {role === card.id && <Check className="h-5 w-5 text-amber-300" />}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex gap-3">
+                  <Button variant="ghost" onClick={() => setStep(1)} className="mv-button-ghost flex-1 rounded-xl">Back</Button>
+                  <Button onClick={handleFinish} className="mv-button-primary flex-1 rounded-xl font-semibold">
+                    Enter Coach <Check className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );

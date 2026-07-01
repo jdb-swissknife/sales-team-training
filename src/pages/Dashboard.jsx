@@ -3,11 +3,9 @@ import { dataStore } from "@/lib/dataStore";
 import { useAuth } from "@/lib/AuthContext";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/lib/utils";
-import { useState } from "react";
 import {
   Target,
   Calendar,
-  CheckCircle2,
   BookOpen,
   Clipboard,
   MessageSquare,
@@ -16,14 +14,67 @@ import {
   Trophy,
   TrendingUp,
   Star,
+  ArrowRight,
+  CheckCircle2,
+  Sparkles,
+  Activity,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 
+function StatTile({ icon: Icon, label, value, sub, accent = "amber" }) {
+  const accentMap = {
+    amber: "text-amber-300 bg-amber-300/10 border-amber-300/15",
+    blue: "text-sky-300 bg-sky-300/10 border-sky-300/15",
+    green: "text-emerald-300 bg-emerald-300/10 border-emerald-300/15",
+    violet: "text-violet-300 bg-violet-300/10 border-violet-300/15",
+  };
+
+  return (
+    <div className="mv-card rounded-3xl p-5">
+      <div className="mb-5 flex items-center justify-between">
+        <div className={`flex h-10 w-10 items-center justify-center rounded-2xl border ${accentMap[accent]}`}>
+          <Icon className="h-5 w-5" />
+        </div>
+        <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-slate-600">30d</span>
+      </div>
+      <div className="text-4xl font-semibold tracking-[-0.06em] text-white">{value}</div>
+      <div className="mt-2 text-sm font-medium text-slate-300">{label}</div>
+      <div className="mt-1 text-xs text-slate-500">{sub}</div>
+    </div>
+  );
+}
+
+function ActionCard({ to, icon: Icon, title, desc, tone }) {
+  const tones = {
+    amber: "from-amber-300/22 via-orange-500/10 to-transparent text-amber-200",
+    blue: "from-sky-300/18 via-indigo-500/10 to-transparent text-sky-200",
+    violet: "from-violet-300/18 via-fuchsia-500/10 to-transparent text-violet-200",
+  };
+
+  return (
+    <Link to={to} className="group block">
+      <div className="mv-card relative h-full overflow-hidden rounded-3xl p-5 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-white/15">
+        <div className={`absolute inset-0 bg-gradient-to-br ${tones[tone]} opacity-70`} />
+        <div className="relative flex h-full min-h-32 flex-col justify-between">
+          <div className="flex items-start justify-between gap-4">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.055] p-3 text-white shadow-inner">
+              <Icon className="h-5 w-5" />
+            </div>
+            <ArrowRight className="h-5 w-5 text-slate-600 transition-transform group-hover:translate-x-1 group-hover:text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold tracking-tight text-white">{title}</h3>
+            <p className="mt-1 text-sm leading-6 text-slate-400">{desc}</p>
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function Dashboard() {
-  const { user, awardXP } = useAuth();
+  const { user } = useAuth();
 
   const { data: fieldLogs = [] } = useQuery({
     queryKey: ["fieldLogs", user?.id],
@@ -43,7 +94,6 @@ export default function Dashboard() {
     enabled: !!user?.id,
   });
 
-  // Calculate stats
   const last30Days = fieldLogs.filter((log) => {
     const d = new Date(log.date);
     const cutoff = new Date();
@@ -55,286 +105,163 @@ export default function Dashboard() {
   const totalConversations = last30Days.reduce((s, l) => s + (l.conversations || 0), 0);
   const totalAppointments = last30Days.reduce((s, l) => s + (l.appointments_set || 0), 0);
   const totalClosures = last30Days.reduce((s, l) => s + (l.closures || 0), 0);
-
-  const convRate = totalDoors > 0 ? ((totalConversations / totalDoors) * 100).toFixed(1) : 0;
-  const closeRate = totalAppointments > 0 ? ((totalClosures / totalAppointments) * 100).toFixed(1) : 0;
+  const convRate = totalDoors > 0 ? ((totalConversations / totalDoors) * 100).toFixed(1) : "0.0";
+  const closeRate = totalAppointments > 0 ? ((totalClosures / totalAppointments) * 100).toFixed(1) : "0.0";
 
   const xp = user?.xp || 0;
   const level = user?.level || 1;
   const xpInLevel = xp % 100;
   const streak = user?.streak_days || 0;
-
-  // Achievements
-  const achievements = [
-    { icon: Flame, label: `${streak} Day Streak`, color: "text-orange-500", unlocked: streak > 0 },
-    { icon: Trophy, label: `Level ${level}`, color: "text-amber-500", unlocked: true },
-    { icon: Target, label: `${totalClosures} Closures`, color: "text-green-500", unlocked: totalClosures > 0 },
-    { icon: Star, label: `${roleplays.length} Practice Runs`, color: "text-purple-500", unlocked: roleplays.length > 0 },
-    { icon: BookOpen, label: `${modules.length} Modules`, color: "text-blue-500", unlocked: modules.length > 0 },
-  ];
-
   const firstName = user?.full_name?.split(" ")[0] || "Rep";
   const hour = new Date().getHours();
-  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const greeting = hour < 12 ? "Morning" : hour < 18 ? "Afternoon" : "Evening";
+
+  const achievements = [
+    { icon: Flame, label: `${streak} day streak`, unlocked: streak > 0 },
+    { icon: Trophy, label: `Level ${level}`, unlocked: true },
+    { icon: Target, label: `${totalClosures} booked`, unlocked: totalClosures > 0 },
+    { icon: Star, label: `${roleplays.length} practices`, unlocked: roleplays.length > 0 },
+  ];
 
   return (
-    <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
-      {/* Hero header */}
-      <div className="space-y-3">
-        <div className="flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900">
-              {greeting}, {firstName}! 
-            </h1>
-            <p className="text-slate-600 text-lg mt-1">
-              {streak > 0
-                ? `You're on a ${streak}-day streak. Keep the fire burning! `
-                : "Ready to knock some doors and level up?"}
-            </p>
-          </div>
-          {/* XP badge */}
-          <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl shadow-lg">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-orange-500 rounded-xl flex items-center justify-center">
-              <Trophy className="w-6 h-6 text-white" />
+    <div className="relative mx-auto max-w-7xl space-y-7 p-4 pb-12 md:p-8">
+      <section className="mv-card relative overflow-hidden rounded-[2rem] p-6 md:p-8 lg:p-10">
+        <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-amber-400/20 blur-3xl" />
+        <div className="absolute bottom-0 left-1/2 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
+
+        <div className="relative grid gap-8 lg:grid-cols-[1.1fr_.9fr] lg:items-end">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3 py-1.5 text-sm text-slate-300">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_16px_rgba(52,211,153,.8)]" />
+              Team cockpit active
             </div>
             <div>
-              <div className="text-xs text-amber-300 font-bold">LEVEL {level}</div>
-              <div className="text-white font-bold text-lg">{xp} XP</div>
-              <div className="w-24 h-1.5 bg-white/10 rounded-full mt-1">
-                <div
-                  className="h-full bg-gradient-to-r from-amber-400 to-orange-500 rounded-full"
-                  style={{ width: `${xpInLevel}%` }}
-                />
+              <p className="mv-kicker mb-3 text-xs">{greeting}, {firstName}</p>
+              <h1 className="max-w-3xl text-4xl font-semibold leading-[0.95] tracking-[-0.055em] text-white md:text-6xl">
+                Build momentum before the next door.
+              </h1>
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-400">
+                Track the reps, sharpen the script, and keep the day moving. The goal is simple: more quality conversations, more booked appointments, more confidence.
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-[1.6rem] border border-white/10 bg-black/20 p-5 shadow-inner">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-white">Level Progress</p>
+                <p className="text-xs text-slate-500">Gamified daily execution</p>
               </div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-300 to-orange-500 shadow-[0_12px_35px_rgba(251,146,60,.25)]">
+                <Trophy className="h-6 w-6 text-white" />
+              </div>
+            </div>
+            <div className="flex items-end justify-between">
+              <div>
+                <div className="font-mono text-xs uppercase tracking-[0.16em] text-amber-200">Level {level}</div>
+                <div className="mt-1 text-4xl font-semibold tracking-[-0.05em] text-white">{xp} XP</div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-semibold text-white">{100 - xpInLevel}</div>
+                <div className="text-xs text-slate-500">XP to next</div>
+              </div>
+            </div>
+            <div className="mt-5 h-3 overflow-hidden rounded-full bg-white/10">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-amber-300 via-orange-400 to-rose-400 shadow-[0_0_24px_rgba(251,146,60,.48)]"
+                style={{ width: `${xpInLevel}%` }}
+              />
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Link to={createPageUrl("FieldLogs")}>
-          <Button className="w-full h-24 bg-gradient-to-br from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-600/20 text-white rounded-2xl">
-            <div className="flex items-center gap-3">
-              <Clipboard className="w-7 h-7" />
-              <div className="text-left">
-                <div className="font-bold text-base">Log Field Activity</div>
-                <div className="text-xs text-blue-100">Record today's doors + earn XP</div>
-              </div>
-            </div>
-          </Button>
-        </Link>
-        <Link to={createPageUrl("PracticeLab")}>
-          <Button className="w-full h-24 bg-gradient-to-br from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 shadow-lg shadow-orange-500/20 text-white rounded-2xl">
-            <div className="flex items-center gap-3">
-              <MessageSquare className="w-7 h-7" />
-              <div className="text-left">
-                <div className="font-bold text-base">Practice Lab</div>
-                <div className="text-xs text-orange-100">Sharpen your pitch</div>
-              </div>
-            </div>
-          </Button>
-        </Link>
-        <Link to={createPageUrl("TrainingModules")}>
-          <Button className="w-full h-24 bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-lg shadow-purple-600/20 text-white rounded-2xl">
-            <div className="flex items-center gap-3">
-              <BookOpen className="w-7 h-7" />
-              <div className="text-left">
-                <div className="font-bold text-base">Training Modules</div>
-                <div className="text-xs text-purple-100">Learn the system</div>
-              </div>
-            </div>
-          </Button>
-        </Link>
-      </div>
+      <section className="grid gap-4 md:grid-cols-3">
+        <ActionCard to={createPageUrl("FieldLogs")} icon={Clipboard} title="Log Field Activity" desc="Turn today’s doors, conversations, and bookings into visible progress." tone="blue" />
+        <ActionCard to={createPageUrl("PracticeLab")} icon={MessageSquare} title="Practice Lab" desc="Run the hard objections before they happen in the neighborhood." tone="amber" />
+        <ActionCard to={createPageUrl("TrainingModules")} icon={BookOpen} title="Training Modules" desc="Short lessons, proven patterns, and scripts reps can actually use." tone="violet" />
+      </section>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Activity */}
-        <Card className="border-0 shadow-md bg-gradient-to-br from-white to-blue-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-              <Target className="w-4 h-4" /> Last 30 Days
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">Doors Knocked</span>
-                <span className="text-2xl font-bold text-slate-900">{totalDoors}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">Conversations</span>
-                <span className="text-lg font-semibold text-blue-600">{totalConversations}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">Conv. Rate</span>
-                <span className="text-lg font-semibold text-green-600">{convRate}%</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatTile icon={Target} label="Doors knocked" value={totalDoors} sub={`${convRate}% conversation rate`} accent="blue" />
+        <StatTile icon={MessageSquare} label="Conversations" value={totalConversations} sub="Quality reps create volume" accent="amber" />
+        <StatTile icon={Calendar} label="Appointments" value={totalAppointments} sub={`${closeRate}% close from appointments`} accent="green" />
+        <StatTile icon={CheckCircle2} label="Booked" value={totalClosures} sub="Wins logged in the field" accent="violet" />
+      </section>
 
-        {/* Sales */}
-        <Card className="border-0 shadow-md bg-gradient-to-br from-white to-green-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-              <Calendar className="w-4 h-4" /> Sales Pipeline
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">Appointments</span>
-                <span className="text-2xl font-bold text-blue-600">{totalAppointments}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">Closures</span>
-                <span className="text-lg font-semibold text-green-600">{totalClosures}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">Close Rate</span>
-                <span className="text-lg font-semibold text-orange-600">{closeRate}%</span>
-              </div>
+      <section className="grid gap-6 lg:grid-cols-[1.05fr_.95fr]">
+        <div className="mv-card rounded-[2rem] p-5 md:p-6">
+          <div className="mb-5 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight text-white">Recent Field Logs</h2>
+              <p className="mt-1 text-sm text-slate-500">Daily reps, not vague progress.</p>
             </div>
-          </CardContent>
-        </Card>
+            <Link to={createPageUrl("FieldLogs")}>
+              <Button variant="ghost" size="sm" className="mv-button-ghost rounded-xl">View all</Button>
+            </Link>
+          </div>
 
-        {/* Achievements */}
-        <Card className="border-0 shadow-md bg-gradient-to-br from-white to-amber-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-              <Trophy className="w-4 h-4" /> Achievements
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-3">
-              {achievements.map((a, i) => (
-                <div
-                  key={i}
-                  className={`text-center transition-all ${
-                    a.unlocked ? "opacity-100" : "opacity-30 grayscale"
-                  }`}
-                  title={a.label}
-                >
-                  <a.icon className={`w-6 h-6 mx-auto ${a.color}`} />
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-slate-400 mt-2">
-              {achievements.filter((a) => a.unlocked).length} of {achievements.length} unlocked
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Training */}
-        <Card className="border-0 shadow-md bg-gradient-to-br from-white to-purple-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
-              <BookOpen className="w-4 h-4" /> Training
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">Available</span>
-                <span className="text-2xl font-bold text-purple-600">{modules.length}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs text-slate-500">Practice Runs</span>
-                <span className="text-lg font-semibold text-orange-600">{roleplays.length}</span>
-              </div>
-              <Link to={createPageUrl("TrainingModules")}>
-                <Button variant="ghost" size="sm" className="w-full mt-1 text-purple-600">
-                  Browse Modules
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Activity */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        <Card className="border-0 shadow-md">
-          <CardHeader className="border-b border-slate-100">
-            <CardTitle className="flex items-center justify-between">
-              <span className="text-lg font-bold flex items-center gap-2">
-                <Clipboard className="w-5 h-5 text-blue-500" />
-                Recent Field Logs
-              </span>
-              <Link to={createPageUrl("FieldLogs")}>
-                <Button variant="ghost" size="sm">View All</Button>
-              </Link>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="space-y-3">
-              {fieldLogs.slice(0, 5).map((log) => (
-                <div key={log.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 hover:bg-slate-100 transition-colors">
+          <div className="space-y-3">
+            {fieldLogs.slice(0, 5).map((log) => (
+              <div key={log.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 transition-colors hover:bg-white/[0.055]">
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <div className="font-medium text-slate-900">
-                      {format(new Date(log.date), "MMM d")}
-                    </div>
-                    <div className="text-xs text-slate-500">{log.neighborhood || "N/A"}</div>
+                    <div className="font-semibold text-white">{format(new Date(log.date), "MMM d")}</div>
+                    <div className="mt-1 text-xs text-slate-500">{log.neighborhood || "No neighborhood noted"}</div>
                   </div>
-                  <div className="flex items-center gap-4 text-xs">
-                    <div className="text-center">
-                      <div className="font-bold text-slate-900">{log.doors_knocked}</div>
-                      <div className="text-slate-400">doors</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="font-bold text-green-600">{log.closures || 0}</div>
-                      <div className="text-slate-400">closed</div>
-                    </div>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div><div className="font-mono text-lg text-white">{log.doors_knocked || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">doors</div></div>
+                    <div><div className="font-mono text-lg text-sky-300">{log.conversations || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">talks</div></div>
+                    <div><div className="font-mono text-lg text-emerald-300">{log.closures || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">booked</div></div>
                   </div>
+                </div>
+              </div>
+            ))}
+            {fieldLogs.length === 0 && (
+              <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.025] p-10 text-center">
+                <Clipboard className="mx-auto mb-3 h-10 w-10 text-slate-600" />
+                <p className="font-semibold text-white">No logs yet</p>
+                <p className="mt-1 text-sm text-slate-500">Log the first field day to start building the scoreboard.</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-6">
+          <div className="mv-card rounded-[2rem] p-5 md:p-6">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="rounded-2xl border border-amber-300/15 bg-amber-300/10 p-3 text-amber-200">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold tracking-tight text-white">Today’s Focus</h2>
+                <p className="text-sm text-slate-500">One simple principle.</p>
+              </div>
+            </div>
+            <blockquote className="text-xl leading-8 tracking-[-0.02em] text-slate-200">
+              “The inspection sells. The kitchen table only confirms what the homeowner already saw.”
+            </blockquote>
+            <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-slate-400">
+              Slow down at the unit. Document visible problems. Make the issue real before talking about payment.
+            </div>
+          </div>
+
+          <div className="mv-card rounded-[2rem] p-5 md:p-6">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-xl font-semibold tracking-tight text-white">Badges</h2>
+              <Activity className="h-5 w-5 text-slate-600" />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              {achievements.map((a) => (
+                <div key={a.label} className={`rounded-2xl border p-4 ${a.unlocked ? "border-white/10 bg-white/[0.045]" : "border-white/5 bg-white/[0.018] opacity-45"}`}>
+                  <a.icon className="mb-3 h-5 w-5 text-amber-300" />
+                  <p className="text-sm font-medium text-white">{a.label}</p>
                 </div>
               ))}
-              {fieldLogs.length === 0 && (
-                <div className="text-center py-8 text-slate-500">
-                  <Clipboard className="w-12 h-12 mx-auto mb-2 text-slate-300" />
-                  <p>No logs yet. Time to hit the doors!</p>
-                </div>
-              )}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-0 shadow-md">
-          <CardHeader className="border-b border-slate-100">
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <Zap className="w-5 h-5 text-amber-500" />
-              Daily Motivation
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <div className="space-y-4">
-              <blockquote className="text-lg text-slate-700 italic leading-relaxed">
-                "You're not selling HVAC equipment. You're selling peace of mind, lower bills, and control. Every door you knock is a family you could help."
-              </blockquote>
-              <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <Flame className="w-4 h-4 text-orange-500" />
-                  <span className="text-sm font-bold text-orange-700">Pro Tip of the Day</span>
-                </div>
-                <p className="text-sm text-slate-700">
-                  The inspection sells, not the kitchen table. Take your time at the unit.
-                  Show the homeowner every rust spot, every water stain. By the time you sit
-                  down, the decision is already half-made.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-slate-500">
-                <TrendingUp className="w-4 h-4" />
-                <span>
-                  {totalDoors > 0
-                    ? `You've knocked ${totalDoors} doors in the last 30 days. That's ${Math.round(totalDoors / 30)} per day. `
-                    : "Start logging your field activity to track your progress!"}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
