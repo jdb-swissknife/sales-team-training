@@ -186,6 +186,21 @@ body {
 .mv-page .bg-yellow-100  { background-color: rgba(234,179,8,0.22) !important; color: #fde68a !important; }
 .mv-page .bg-red-100     { background-color: rgba(239,68,68,0.22) !important;  color: #fca5a5 !important; }
 
+/* Pill / chip backgrounds (slate-50 / slate-100) used by category filters */
+.mv-page .bg-slate-50    { background-color: rgba(255,255,255,0.04) !important; color: #cbd5e1 !important; }
+.mv-page .bg-slate-100   { background-color: rgba(255,255,255,0.06) !important; color: #cbd5e1 !important; }
+.mv-page .hover\:bg-slate-200:hover { background-color: rgba(255,255,255,0.10) !important; }
+
+/* Outline-style badges (Required / bordered labels) get a dark-tinted fill */
+.mv-page [class*="border-orange-300"] {
+  border-color: rgba(251,146,60,0.5) !important;
+}
+.mv-page [class*="text-orange-700"][class*="border-orange-300"],
+.mv-page [class*="border-orange-"][class*="text-orange-"] {
+  background-color: rgba(251,146,60,0.10) !important;
+  color: #fdba74 !important;
+}
+
 /* Solid-text color overrides for color-coded inline utilities */
 .mv-page .text-purple-700 { color: #d8b4fe !important; }
 .mv-page .text-purple-600 { color: #c084fc !important; }
