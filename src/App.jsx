@@ -59,13 +59,18 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router basename={routerBasename}>
           <NavigationTracker />
-          <MindVaultCompanion />
+          <CompanionGate />
           <AuthenticatedApp />
         </Router>
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>
   );
+}
+
+function CompanionGate() {
+  const { isOnboarded } = useAuth();
+  return <MindVaultCompanion enabled={!isOnboarded} />;
 }
 
 export default App

@@ -122,17 +122,83 @@ body {
   color: #9aa4b2 !important;
 }
 
+/* Dark glass surface for cards inside .mv-page.
+   Replaces default light Card surfaces so text on bg works on the dark shell. */
 .mv-page .bg-white,
-.mv-page .from-white,
-.mv-page .to-white,
-.mv-page [class*="from-white"],
-.mv-page [class*="to-blue-50"],
-.mv-page [class*="to-green-50"],
-.mv-page [class*="to-amber-50"],
-.mv-page [class*="to-purple-50"],
-.mv-page [class*="to-orange-50"] {
-  background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.035)) !important;
+.mv-page [class~="bg-white"]:not([class*="from-white"]):not([class*="to-white"]) {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)) !important;
 }
+
+/* Gradient stops — only target elements that actually use them,
+   replacing the bright palette with dark-tinted glass tones. */
+.mv-page [class*="from-white"] {
+  --tw-gradient-from: rgba(255,255,255,0.10) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(255,255,255,0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+.mv-page [class*="to-white"] {
+  --tw-gradient-to: rgba(255,255,255,0.05) var(--tw-gradient-to-position) !important;
+}
+.mv-page [class*="from-slate-50"],
+.mv-page [class*="to-slate-50"] {
+  --tw-gradient-from: rgba(148,163,184,0.08) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(148,163,184,0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+.mv-page [class*="from-blue-50"],
+.mv-page [class*="to-blue-50"] {
+  --tw-gradient-from: rgba(59,130,246,0.18) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(59,130,246,0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+.mv-page [class*="from-green-50"],
+.mv-page [class*="to-green-50"] {
+  --tw-gradient-from: rgba(34,197,94,0.18) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(34,197,94,0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+.mv-page [class*="from-amber-50"],
+.mv-page [class*="to-amber-50"] {
+  --tw-gradient-from: rgba(245,158,11,0.18) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(245,158,11,0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+.mv-page [class*="from-purple-50"],
+.mv-page [class*="to-purple-50"] {
+  --tw-gradient-from: rgba(168,85,247,0.18) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(168,85,247,0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+.mv-page [class*="from-orange-50"],
+.mv-page [class*="to-orange-50"] {
+  --tw-gradient-from: rgba(251,146,60,0.18) var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgba(251,146,60,0) var(--tw-gradient-to-position) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+/* Stage/difficulty badge fills — keep readable on dark surface */
+.mv-page .bg-purple-100  { background-color: rgba(168,85,247,0.22) !important; color: #d8b4fe !important; }
+.mv-page .bg-blue-100    { background-color: rgba(59,130,246,0.22) !important; color: #93c5fd !important; }
+.mv-page .bg-cyan-100    { background-color: rgba(34,211,238,0.22) !important; color: #67e8f9 !important; }
+.mv-page .bg-green-100   { background-color: rgba(34,197,94,0.22) !important; color: #86efac !important; }
+.mv-page .bg-orange-100  { background-color: rgba(251,146,60,0.22) !important; color: #fdba74 !important; }
+.mv-page .bg-pink-100    { background-color: rgba(236,72,153,0.22) !important; color: #f9a8d4 !important; }
+.mv-page .bg-yellow-100  { background-color: rgba(234,179,8,0.22) !important; color: #fde68a !important; }
+.mv-page .bg-red-100     { background-color: rgba(239,68,68,0.22) !important;  color: #fca5a5 !important; }
+
+/* Solid-text color overrides for color-coded inline utilities */
+.mv-page .text-purple-700 { color: #d8b4fe !important; }
+.mv-page .text-purple-600 { color: #c084fc !important; }
+.mv-page .text-blue-700   { color: #93c5fd !important; }
+.mv-page .text-blue-600   { color: #60a5fa !important; }
+.mv-page .text-green-700  { color: #86efac !important; }
+.mv-page .text-green-600  { color: #4ade80 !important; }
+.mv-page .text-orange-700 { color: #fdba74 !important; }
+.mv-page .text-orange-600 { color: #fb923c !important; }
+.mv-page .text-pink-700   { color: #f9a8d4 !important; }
+.mv-page .text-yellow-700 { color: #fde68a !important; }
+.mv-page .text-red-700    { color: #fca5a5 !important; }
+.mv-page .text-slate-300  { color: #cbd5e1 !important; }
 
 .mv-page .border-slate-100,
 .mv-page .border-slate-200,
