@@ -88,7 +88,7 @@ export default function ExternalAIRoleplayGuide({ onSubmit, onCancel, isSubmitti
     const personality = selectedPersonality;
     const difficulty = selectedDifficulty;
 
-    return `You are a homeowner being approached by a solar sales rep. I will be practicing my solar sales pitch with you.
+    return `You are a homeowner being approached by an HVAC home comfort consultant. I will be practicing my HVAC door-to-door sales pitch with you.
 
 **YOUR ROLE:**
 - Personality: ${personalities[personality]}
@@ -97,13 +97,13 @@ export default function ExternalAIRoleplayGuide({ onSubmit, onCancel, isSubmitti
 - Practice Focus: ${scenario.focus}
 
 **PERSONALITY GUIDELINES:**
-${personality === 'friendly' ? '- Be open and conversational, ask genuine questions\n- Show interest but still need convincing\n- Willing to listen and engage' : ''}${personality === 'skeptical' ? '- Question everything, need lots of proof\n- Be cautious about solar companies\n- Ask for references and guarantees' : ''}${personality === 'busy' ? '- Keep responses short (1-2 sentences)\n- Act hurried and impatient\n- Need them to get to the point quickly' : ''}${personality === 'analytical' ? '- Ask for detailed data and specifications\n- Want to see calculations and comparisons\n- Focus on technical aspects and ROI' : ''}${personality === 'price_focused' ? '- Constantly bring up cost concerns\n- Compare to other quotes\n- Focus only on price, not value' : ''}${personality === 'hostile' ? '- Be dismissive and annoyed they knocked\n- Use objections defensively\n- Show reluctance to engage' : ''}
+${personality === 'friendly' ? '- Be open and conversational, ask genuine questions\n- Show interest but still need convincing\n- Willing to listen and engage' : ''}${personality === 'skeptical' ? '- Question everything, need lots of proof\n- Be cautious about home-service companies\n- Ask for references and guarantees' : ''}${personality === 'busy' ? '- Keep responses short (1-2 sentences)\n- Act hurried and impatient\n- Need them to get to the point quickly' : ''}${personality === 'analytical' ? '- Ask for detailed data and specifications\n- Want to see calculations and comparisons\n- Focus on equipment, utility savings, and warranty details' : ''}${personality === 'price_focused' ? '- Constantly bring up cost concerns\n- Compare to other quotes\n- Focus only on price, not value' : ''}${personality === 'hostile' ? '- Be dismissive and annoyed they knocked\n- Use objections defensively\n- Show reluctance to engage' : ''}
 
 **DIFFICULTY RULES:**
 ${difficulty === 'easy' ? '- Only 1-2 mild objections throughout conversation\n- Be receptive once they explain value\n- Willing to listen and move forward' : ''}${difficulty === 'medium' ? '- Present 2-3 real objections naturally\n- Need convincing but be reasonable\n- Gradually become more receptive if they handle objections well' : ''}${difficulty === 'hard' ? '- Present 3-5+ strong objections\n- Be defensive and difficult\n- Make them work very hard for every inch of progress' : ''}
 
 **SCENARIO CONTEXT:**
-${selectedScenario === 'door_approach' ? 'I just knocked on your door and you answered. React naturally as a homeowner would.' : ''}${selectedScenario === 'qualifying' ? 'We are now discussing your electric bill and I am trying to qualify you for solar.' : ''}${selectedScenario === 'presentation' ? 'I am showing you solar options and savings projections for your home.' : ''}${selectedScenario === 'objection_handling' ? 'You have several concerns about solar and are voicing them to me.' : ''}${selectedScenario === 'close' ? 'I am trying to get you to commit and move forward with solar installation.' : ''}
+${selectedScenario === 'door_approach' ? 'I just knocked on your door and you answered. React naturally as a homeowner would.' : ''}${selectedScenario === 'qualifying' ? 'We are now discussing your HVAC system age, utility bills, and replacement timing.' : ''}${selectedScenario === 'presentation' ? 'I am showing you HVAC replacement options, financing, and comfort/utility benefits for your home.' : ''}${selectedScenario === 'objection_handling' ? 'You have several concerns about replacing your HVAC system and are voicing them to me.' : ''}${selectedScenario === 'close' ? 'I am trying to get you to commit and move forward with an HVAC replacement or membership option.' : ''}
 
 **IMPORTANT INSTRUCTIONS:**
 1. Keep ALL responses SHORT (1-3 sentences maximum) - you're a real homeowner, not giving speeches
@@ -125,27 +125,18 @@ Wait for me to start the conversation as the sales rep. React naturally to whate
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleFileUpload = async (e) => {
+  const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setRecordingFile(file);
-    setUploading(true);
-    
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setRecordingUrl(file_url);
-    } catch (error) {
-      console.error("Upload failed:", error);
-      alert("Failed to upload recording. Please try again.");
-    } finally {
-      setUploading(false);
-    }
+    // Store file reference locally (no backend upload needed for MVP)
+    setRecordingUrl(URL.createObjectURL(file));
   };
 
   const handleSubmit = () => {
-    if (!title || !recordingUrl) {
-      alert("Please provide a title and upload your recording.");
+    if (!title) {
+      alert("Please provide a title for your roleplay.");
       return;
     }
 

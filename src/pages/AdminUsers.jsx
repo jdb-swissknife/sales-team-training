@@ -1,7 +1,7 @@
-
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { dataStore } from "@/lib/dataStore";
+import { useAuth } from "@/lib/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/table";
 
 export default function AdminUsers() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("user");
@@ -50,26 +50,14 @@ export default function AdminUsers() {
 
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      }
-    };
-    loadUser();
-  }, []);
-
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
-    queryFn: () => base44.entities.User.list('created_date'),
+    queryFn: () => dataStore.entities.User.list('created_date'),
     initialData: []
   });
 
   const updateUserMutation = useMutation({
-    mutationFn: ({ userId, data }) => base44.entities.User.update(userId, data),
+    mutationFn: ({ userId, data }) => dataStore.entities.User.update(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['allUsers']);
     }
@@ -83,13 +71,13 @@ export default function AdminUsers() {
 
     setInviting(true);
     try {
-      await base44.auth.inviteUser({
+      await dataStore.entities.User.create({
         email: inviteEmail,
         full_name: inviteName,
         role: inviteRole
       });
       
-      alert(`User ${inviteEmail} has been invited!`);
+      alert(`User ${inviteEmail} has been added!`);
       setShowInviteDialog(false);
       setInviteEmail("");
       setInviteName("");
@@ -97,7 +85,7 @@ export default function AdminUsers() {
       queryClient.invalidateQueries(['allUsers']);
     } catch (error) {
       console.error("Invite failed:", error);
-      alert(`Failed to invite user: ${error.message || 'Unknown error'}`);
+      alert(`Failed to add user: ${error.message || 'Unknown error'}`);
     } finally {
       setInviting(false);
     }

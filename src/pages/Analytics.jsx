@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { dataStore } from "@/lib/dataStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, TrendingUp, Users, Award, Download } from "lucide-react";
@@ -26,25 +26,25 @@ export default function Analytics() {
 
   const { data: allFieldLogs = [] } = useQuery({
     queryKey: ['allFieldLogs'],
-    queryFn: () => base44.entities.FieldLog.list('-date'),
+    queryFn: () => dataStore.entities.FieldLog.list('-date'),
     initialData: []
   });
 
   const { data: allRoleplays = [] } = useQuery({
     queryKey: ['allRoleplays'],
-    queryFn: () => base44.entities.Roleplay.list('-created_date'),
+    queryFn: () => dataStore.entities.Roleplay.list('-created_date'),
     initialData: []
   });
 
   const { data: allCertifications = [] } = useQuery({
     queryKey: ['allCertifications'],
-    queryFn: () => base44.entities.Certification.list(),
+    queryFn: () => dataStore.entities.Certification.list(),
     initialData: []
   });
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => dataStore.entities.User.list(),
     initialData: []
   });
 

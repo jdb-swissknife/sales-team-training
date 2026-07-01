@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { dataStore } from "@/lib/dataStore";
+import { useAuth } from "@/lib/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,7 @@ import {
 } from "@/components/ui/select";
 
 export default function CoachReview() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("roleplays");
   const [selectedItem, setSelectedItem] = useState(null);
   const [feedbackForm, setFeedbackForm] = useState({
@@ -47,22 +48,10 @@ export default function CoachReview() {
 
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      }
-    };
-    loadUser();
-  }, []);
-
   const { data: pendingRoleplays = [] } = useQuery({
     queryKey: ['pendingRoleplays'],
     queryFn: async () => {
-      const all = await base44.entities.Roleplay.list('-created_date');
+      const all = await dataStore.entities.Roleplay.list('-created_date');
       return all.filter(r => r.status === 'Submitted' || r.status === 'Under Review');
     },
     initialData: []
@@ -71,14 +60,14 @@ export default function CoachReview() {
   const { data: flaggedLogs = [] } = useQuery({
     queryKey: ['flaggedLogs'],
     queryFn: async () => {
-      const all = await base44.entities.FieldLog.list('-date');
+      const all = await dataStore.entities.FieldLog.list('-date');
       return all.filter(log => log.needs_attention);
     },
     initialData: []
   });
 
   const updateRoleplayMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Roleplay.update(id, data),
+    mutationFn: ({ id, data }) => dataStore.entities.Roleplay.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['pendingRoleplays']);
       setSelectedItem(null);
@@ -87,7 +76,7 @@ export default function CoachReview() {
   });
 
   const updateFieldLogMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.FieldLog.update(id, data),
+    mutationFn: ({ id, data }) => dataStore.entities.FieldLog.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['flaggedLogs']);
       setSelectedItem(null);

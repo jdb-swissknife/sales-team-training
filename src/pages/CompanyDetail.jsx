@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { dataStore } from "@/lib/dataStore";
+import { useAuth } from "@/lib/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,7 +36,7 @@ import {
 } from "@/components/ui/tabs";
 
 export default function CompanyDetail() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [companyId, setCompanyId] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editedCompany, setEditedCompany] = useState(null);
@@ -44,16 +45,6 @@ export default function CompanyDetail() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      }
-    };
-    loadUser();
-
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');
     setCompanyId(id);
@@ -62,7 +53,7 @@ export default function CompanyDetail() {
   const { data: company } = useQuery({
     queryKey: ['company', companyId],
     queryFn: async () => {
-      const companies = await base44.entities.Company.list();
+      const companies = await dataStore.entities.Company.list();
       return companies.find(c => c.id === companyId);
     },
     enabled: !!companyId
@@ -71,7 +62,7 @@ export default function CompanyDetail() {
   const { data: companyUsers = [] } = useQuery({
     queryKey: ['companyUsers', companyId],
     queryFn: async () => {
-      const allUsers = await base44.entities.User.list();
+      const allUsers = await dataStore.entities.User.list();
       return allUsers.filter(u => u.company_id === companyId);
     },
     enabled: !!companyId,
@@ -81,7 +72,7 @@ export default function CompanyDetail() {
   const { data: companyModules = [] } = useQuery({
     queryKey: ['companyModules', companyId],
     queryFn: async () => {
-      const allModules = await base44.entities.TrainingModule.list();
+      const allModules = await dataStore.entities.TrainingModule.list();
       return allModules.filter(m => m.company_id === companyId);
     },
     enabled: !!companyId,
@@ -89,7 +80,7 @@ export default function CompanyDetail() {
   });
 
   const updateCompanyMutation = useMutation({
-    mutationFn: (data) => base44.entities.Company.update(companyId, data),
+    mutationFn: (data) => dataStore.entities.Company.update(companyId, data),
     onSuccess: () => {
       queryClient.invalidateQueries(['company', companyId]);
       queryClient.invalidateQueries(['companies']);
@@ -98,7 +89,7 @@ export default function CompanyDetail() {
   });
 
   const deleteCompanyMutation = useMutation({
-    mutationFn: () => base44.entities.Company.delete(companyId),
+    mutationFn: () => dataStore.entities.Company.delete(companyId),
     onSuccess: () => {
       navigate(createPageUrl("PlatformDashboard"));
     }

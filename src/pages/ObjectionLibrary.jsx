@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { dataStore } from "@/lib/dataStore";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,11 +21,8 @@ export default function ObjectionLibrary() {
   const { data: objections = [] } = useQuery({
     queryKey: ['objections'],
     queryFn: async () => {
-      const user = await base44.auth.me();
-      const allObjections = await base44.entities.Objection.list();
-      // If user has no company, show all; otherwise show their company + master library
-      if (!user.company_id) return allObjections;
-      return allObjections.filter(o => !o.company_id || o.company_id === user.company_id);
+      const allObjections = await dataStore.entities.Objection.list();
+      return allObjections;
     },
     initialData: []
   });

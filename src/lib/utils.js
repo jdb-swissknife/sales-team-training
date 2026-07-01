@@ -1,9 +1,9 @@
-import { clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { Link } from "react-router-dom";
 
-export function cn(...inputs) {
-  return twMerge(clsx(inputs))
-} 
+// Vite handles the @ alias, but keep createPageUrl for the routing pattern
+export function createPageUrl(pageName) {
+  return `/${pageName.toLowerCase()}`;
+}
 
-
-export const isIframe = window.self !== window.top;
+// Re-export commonly used utils
+export { cn } from "@/lib/utils-helper";

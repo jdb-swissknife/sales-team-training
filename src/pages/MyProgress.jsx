@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { dataStore } from "@/lib/dataStore";
+import { useAuth } from "@/lib/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Award, TrendingUp, CheckCircle2, Clock, Target } from "lucide-react";
@@ -8,24 +8,12 @@ import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
 
 export default function MyProgress() {
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      }
-    };
-    loadUser();
-  }, []);
+  const { user } = useAuth();
 
   const { data: certification } = useQuery({
     queryKey: ['certification', user?.id],
     queryFn: async () => {
-      const certs = await base44.entities.Certification.filter({ rep_id: user?.id });
+      const certs = await dataStore.entities.Certification.filter({ rep_id: user?.id });
       return certs[0] || null;
     },
     enabled: !!user?.id
@@ -33,21 +21,21 @@ export default function MyProgress() {
 
   const { data: assignments = [] } = useQuery({
     queryKey: ['assignments', user?.id],
-    queryFn: () => base44.entities.Assignment.filter({ rep_id: user?.id }),
+    queryFn: () => dataStore.entities.Assignment.filter({ rep_id: user?.id }),
     enabled: !!user?.id,
     initialData: []
   });
 
   const { data: fieldLogs = [] } = useQuery({
     queryKey: ['fieldLogs', user?.id],
-    queryFn: () => base44.entities.FieldLog.filter({ rep_id: user?.id }, '-date'),
+    queryFn: () => dataStore.entities.FieldLog.filter({ rep_id: user?.id }, '-date'),
     enabled: !!user?.id,
     initialData: []
   });
 
   const { data: roleplays = [] } = useQuery({
     queryKey: ['roleplays', user?.id],
-    queryFn: () => base44.entities.Roleplay.filter({ rep_id: user?.id }),
+    queryFn: () => dataStore.entities.Roleplay.filter({ rep_id: user?.id }),
     enabled: !!user?.id,
     initialData: []
   });

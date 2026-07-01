@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { dataStore } from "@/lib/dataStore";
+import { useAuth } from "@/lib/AuthContext";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -18,18 +19,14 @@ import {
 
 export default function TrainingModules() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState("all");
 
   const { data: modules = [] } = useQuery({
     queryKey: ['trainingModules'],
     queryFn: async () => {
-      const user = await base44.auth.me();
-      const allModules = await base44.entities.TrainingModule.list('order');
-      // If user has no company, show all; otherwise show their company + master library
-      return allModules.filter(m => {
-        if (!user.company_id) return m.title !== "Welcome to Solar Door-to-Door";
-        return (!m.company_id || m.company_id === user.company_id) && m.title !== "Welcome to Solar Door-to-Door";
-      });
+      const allModules = await dataStore.entities.TrainingModule.list('order');
+      return allModules;
     },
     initialData: []
   });
@@ -64,7 +61,7 @@ export default function TrainingModules() {
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold text-slate-900">Training Modules</h1>
-        <p className="text-slate-600">Master the skills needed to excel in solar door-to-door sales</p>
+        <p className="text-slate-600">Master the skills needed to excel in HVAC door-to-door sales</p>
       </div>
 
       {/* Category Filters */}

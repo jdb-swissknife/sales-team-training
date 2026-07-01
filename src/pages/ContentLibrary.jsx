@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { dataStore } from "@/lib/dataStore";
+import { useAuth } from "@/lib/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,30 +24,18 @@ import {
 } from "@/components/ui/select";
 
 export default function ContentLibrary() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [industryFilter, setIndustryFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("modules");
 
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      }
-    };
-    loadUser();
-  }, []);
-
   // Fetch master library modules (no company_id)
   const { data: masterModules = [] } = useQuery({
     queryKey: ['masterModules'],
     queryFn: async () => {
-      const allModules = await base44.entities.TrainingModule.list('-created_date');
+      const allModules = await dataStore.entities.TrainingModule.list('-created_date');
       return allModules.filter(m => !m.company_id);
     },
     initialData: []
@@ -56,7 +45,7 @@ export default function ContentLibrary() {
   const { data: masterObjections = [] } = useQuery({
     queryKey: ['masterObjections'],
     queryFn: async () => {
-      const allObjections = await base44.entities.Objection.list('-created_date');
+      const allObjections = await dataStore.entities.Objection.list('-created_date');
       return allObjections.filter(o => !o.company_id);
     },
     initialData: []

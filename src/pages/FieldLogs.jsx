@@ -1,13 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { dataStore } from "@/lib/dataStore";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, TrendingUp, X } from "lucide-react";
+import { Plus, Calendar, TrendingUp, X, Flame, Zap } from "lucide-react";
 import { format } from "date-fns";
 import {
   Dialog,
@@ -17,9 +18,10 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "@/components/ui/use-toast";
 
 export default function FieldLogs() {
-  const [user, setUser] = useState(null);
+  const { user, awardXP } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     date: format(new Date(), "yyyy-MM-dd"),
@@ -34,43 +36,58 @@ export default function FieldLogs() {
     top_objections: [],
     what_worked: "",
     what_to_change: "",
-    self_rating: 3
+    self_rating: 3,
   });
   const [currentObjection, setCurrentObjection] = useState("");
 
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      }
-    };
-    loadUser();
-  }, []);
-
   const { data: fieldLogs = [] } = useQuery({
-    queryKey: ['fieldLogs', user?.id],
-    queryFn: () => base44.entities.FieldLog.filter({ rep_id: user?.id }, '-date'),
+    queryKey: ["fieldLogs", user?.id],
+    queryFn: () =>
+      dataStore.entities.FieldLog.filter({ rep_id: user?.id }, "-date"),
     enabled: !!user?.id,
-    initialData: []
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.FieldLog.create({
-      ...data,
-      rep_id: user.id,
-      rep_name: user.full_name
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['fieldLogs']);
-      queryClient.invalidateQueries(['certification']);
+    mutationFn: (data) =>
+      dataStore.entities.FieldLog.create({
+        ...data,
+        rep_id: user.id,
+        rep_name: user.full_name,
+      }),
+    onSuccess: async (newLog) => {
+      queryClient.invalidateQueries(["fieldLogs"]);
+      queryClient.invalidateQueries(["certification"]);
+
+      // Award XP based on activity
+      const xpGained =
+        (newLog.doors_knocked || 0) * 2 +
+        (newLog.conversations || 0) * 3 +
+        (newLog.appointments_set || 0) * 5 +
+        (newLog.closures || 0) * 20;
+
+      const result = await awardXP(xpGained, "field activity");
+
+      // Touch streak
+      await dataStore.auth.touchStreak();
+      queryClient.invalidateQueries(["fieldLogs"]);
+
       setShowForm(false);
       resetForm();
-    }
+
+      if (result.leveledUp) {
+        toast({
+          title: `LEVEL UP! You're now Level ${result.newLevel}! `,
+          description: `Earned ${xpGained} XP from today's activity. Keep crushing it!`,
+        });
+      } else {
+        toast({
+          title: `+${xpGained} XP earned! `,
+          description: `${newLog.doors_knocked} doors, ${newLog.closures} closures logged.`,
+        });
+      }
+    },
   });
 
   const resetForm = () => {
@@ -87,7 +104,7 @@ export default function FieldLogs() {
       top_objections: [],
       what_worked: "",
       what_to_change: "",
-      self_rating: 3
+      self_rating: 3,
     });
     setCurrentObjection("");
   };
@@ -101,7 +118,7 @@ export default function FieldLogs() {
     if (currentObjection.trim() && formData.top_objections.length < 3) {
       setFormData({
         ...formData,
-        top_objections: [...formData.top_objections, currentObjection.trim()]
+        top_objections: [...formData.top_objections, currentObjection.trim()],
       });
       setCurrentObjection("");
     }
@@ -110,79 +127,100 @@ export default function FieldLogs() {
   const removeObjection = (index) => {
     setFormData({
       ...formData,
-      top_objections: formData.top_objections.filter((_, i) => i !== index)
+      top_objections: formData.top_objections.filter((_, i) => i !== index),
     });
   };
 
   // Calculate stats
-  const totalDoors = fieldLogs.reduce((sum, log) => sum + (log.doors_knocked || 0), 0);
-  const totalConversations = fieldLogs.reduce((sum, log) => sum + (log.conversations || 0), 0);
-  const totalAppointments = fieldLogs.reduce((sum, log) => sum + (log.appointments_set || 0), 0);
-  const totalClosures = fieldLogs.reduce((sum, log) => sum + (log.closures || 0), 0);
+  const totalDoors = fieldLogs.reduce((s, l) => s + (l.doors_knocked || 0), 0);
+  const totalConversations = fieldLogs.reduce((s, l) => s + (l.conversations || 0), 0);
+  const totalAppointments = fieldLogs.reduce((s, l) => s + (l.appointments_set || 0), 0);
+  const totalClosures = fieldLogs.reduce((s, l) => s + (l.closures || 0), 0);
 
-  const conversionRate = totalDoors > 0 ? ((totalConversations / totalDoors) * 100).toFixed(1) : 0;
-  const avgRating = fieldLogs.length > 0 
-    ? (fieldLogs.reduce((sum, log) => sum + (log.self_rating || 0), 0) / fieldLogs.length).toFixed(1)
-    : 0;
+  const convRate = totalDoors > 0 ? ((totalConversations / totalDoors) * 100).toFixed(1) : 0;
+  const avgRating =
+    fieldLogs.length > 0
+      ? (fieldLogs.reduce((s, l) => s + (l.self_rating || 0), 0) / fieldLogs.length).toFixed(1)
+      : 0;
+
+  // Potential XP preview
+  const previewXP =
+    formData.doors_knocked * 2 +
+    formData.conversations * 3 +
+    formData.appointments_set * 5 +
+    formData.closures * 20;
 
   return (
-    <div className="p-4 md:p-8 space-y-6">
+    <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Field Activity Logs</h1>
-          <p className="text-slate-600 mt-1">Track your daily door-to-door performance</p>
+          <p className="text-slate-600 mt-1 flex items-center gap-2">
+            Track your daily performance and earn XP
+            <Zap className="w-4 h-4 text-amber-500" />
+          </p>
         </div>
-        <Button 
+        <Button
           onClick={() => setShowForm(true)}
-          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-600/30"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg shadow-blue-600/20"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Log Field Activity
+          Log Activity
         </Button>
+      </div>
+
+      {/* XP Info Banner */}
+      <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl border border-amber-200">
+        <Zap className="w-5 h-5 text-amber-500 flex-shrink-0" />
+        <p className="text-sm text-slate-700">
+          <span className="font-bold">Earn XP for every activity:</span>
+          {" "}2 XP per door, 3 XP per conversation, 5 XP per appointment, 20 XP per closure.
+          Log daily to build your streak!
+        </p>
       </div>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="border-0 shadow-md bg-gradient-to-br from-white to-blue-50">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-blue-600">{totalDoors}</div>
-            <div className="text-xs text-slate-600 mt-1">Total Doors Knocked</div>
+            <div className="text-3xl font-bold text-blue-600">{totalDoors}</div>
+            <div className="text-xs text-slate-600 mt-1">Total Doors</div>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-md bg-gradient-to-br from-white to-green-50">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-green-600">{totalConversations}</div>
+            <div className="text-3xl font-bold text-green-600">{totalConversations}</div>
             <div className="text-xs text-slate-600 mt-1">Conversations</div>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-md bg-gradient-to-br from-white to-orange-50">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-orange-600">{totalAppointments}</div>
-            <div className="text-xs text-slate-600 mt-1">Appointments Set</div>
+            <div className="text-3xl font-bold text-orange-600">{totalAppointments}</div>
+            <div className="text-xs text-slate-600 mt-1">Appointments</div>
           </CardContent>
         </Card>
         <Card className="border-0 shadow-md bg-gradient-to-br from-white to-purple-50">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-purple-600">{totalClosures}</div>
-            <div className="text-xs text-slate-600 mt-1">Total Closures</div>
+            <div className="text-3xl font-bold text-purple-600">{totalClosures}</div>
+            <div className="text-xs text-slate-600 mt-1">Closures</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Performance Metrics */}
+      {/* Performance */}
       <Card className="border-0 shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5" />
-            Performance Metrics
+            Your Performance
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid md:grid-cols-3 gap-6">
             <div>
               <div className="text-sm text-slate-600 mb-1">Conversation Rate</div>
-              <div className="text-3xl font-bold text-green-600">{conversionRate}%</div>
+              <div className="text-3xl font-bold text-green-600">{convRate}%</div>
               <div className="text-xs text-slate-500 mt-1">Conversations per door</div>
             </div>
             <div>
@@ -191,15 +229,15 @@ export default function FieldLogs() {
               <div className="text-xs text-slate-500 mt-1">Your self-assessment</div>
             </div>
             <div>
-              <div className="text-sm text-slate-600 mb-1">Total Logs</div>
+              <div className="text-sm text-slate-600 mb-1">Days Tracked</div>
               <div className="text-3xl font-bold text-blue-600">{fieldLogs.length}</div>
-              <div className="text-xs text-slate-500 mt-1">Days tracked</div>
+              <div className="text-xs text-slate-500 mt-1">Total logs</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Log History */}
+      {/* History */}
       <Card className="border-0 shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -210,8 +248,8 @@ export default function FieldLogs() {
         <CardContent>
           <div className="space-y-3">
             {fieldLogs.map((log) => (
-              <div 
-                key={log.id} 
+              <div
+                key={log.id}
                 className="p-4 rounded-xl bg-gradient-to-r from-slate-50 to-slate-100/50 hover:from-slate-100 hover:to-slate-200/50 transition-all border border-slate-200"
               >
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
@@ -219,18 +257,17 @@ export default function FieldLogs() {
                     <div className="text-lg font-bold text-slate-900">
                       {format(new Date(log.date), "MMM d, yyyy")}
                     </div>
-                    {log.neighborhood && (
-                      <Badge variant="outline">{log.neighborhood}</Badge>
-                    )}
+                    {log.neighborhood && <Badge variant="outline">{log.neighborhood}</Badge>}
                     {log.coach_present && (
-                      <Badge className="bg-green-100 text-green-700 border-green-200">
-                        Coach Present
-                      </Badge>
+                      <Badge className="bg-green-100 text-green-700">Coach Present</Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <span key={star} className={star <= log.self_rating ? "text-yellow-400" : "text-slate-300"}>
+                      <span
+                        key={star}
+                        className={star <= log.self_rating ? "text-yellow-400" : "text-slate-300"}
+                      >
                         ★
                       </span>
                     ))}
@@ -243,15 +280,15 @@ export default function FieldLogs() {
                     <div className="text-lg font-semibold text-slate-900">{log.doors_knocked}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-slate-500">Conversations</div>
+                    <div className="text-xs text-slate-500">Convos</div>
                     <div className="text-lg font-semibold text-blue-600">{log.conversations}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-slate-500">Appointments</div>
+                    <div className="text-xs text-slate-500">Appts</div>
                     <div className="text-lg font-semibold text-green-600">{log.appointments_set}</div>
                   </div>
                   <div>
-                    <div className="text-xs text-slate-500">Closures</div>
+                    <div className="text-xs text-slate-500">Closed</div>
                     <div className="text-lg font-semibold text-orange-600">{log.closures}</div>
                   </div>
                   <div>
@@ -288,8 +325,8 @@ export default function FieldLogs() {
             {fieldLogs.length === 0 && (
               <div className="text-center py-12 text-slate-500">
                 <Calendar className="w-16 h-16 mx-auto mb-3 text-slate-300" />
-                <p className="text-lg font-medium">No field logs yet</p>
-                <p className="text-sm">Start tracking your daily activity to see your progress</p>
+                <p className="text-lg font-medium">No logs yet</p>
+                <p className="text-sm">Log your first day in the field to start earning XP!</p>
               </div>
             )}
           </div>
@@ -345,7 +382,7 @@ export default function FieldLogs() {
                   type="number"
                   min="0"
                   value={formData.doors_knocked}
-                  onChange={(e) => setFormData({ ...formData, doors_knocked: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, doors_knocked: parseInt(e.target.value) || 0 })}
                   required
                 />
               </div>
@@ -356,7 +393,7 @@ export default function FieldLogs() {
                   type="number"
                   min="0"
                   value={formData.conversations}
-                  onChange={(e) => setFormData({ ...formData, conversations: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, conversations: parseInt(e.target.value) || 0 })}
                   required
                 />
               </div>
@@ -367,7 +404,7 @@ export default function FieldLogs() {
                   type="number"
                   min="0"
                   value={formData.appointments_set}
-                  onChange={(e) => setFormData({ ...formData, appointments_set: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, appointments_set: parseInt(e.target.value) || 0 })}
                   required
                 />
               </div>
@@ -378,7 +415,7 @@ export default function FieldLogs() {
                   type="number"
                   min="0"
                   value={formData.closures}
-                  onChange={(e) => setFormData({ ...formData, closures: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, closures: parseInt(e.target.value) || 0 })}
                   required
                 />
               </div>
@@ -390,11 +427,21 @@ export default function FieldLogs() {
                   min="1"
                   max="5"
                   value={formData.self_rating}
-                  onChange={(e) => setFormData({ ...formData, self_rating: parseInt(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, self_rating: parseInt(e.target.value) || 3 })}
                   required
                 />
               </div>
             </div>
+
+            {/* XP Preview */}
+            {previewXP > 0 && (
+              <div className="flex items-center gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <Zap className="w-4 h-4 text-amber-500" />
+                <span className="text-sm text-amber-800">
+                  This log will earn <span className="font-bold">{previewXP} XP</span>
+                </span>
+              </div>
+            )}
 
             <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-2">
@@ -422,10 +469,10 @@ export default function FieldLogs() {
                   placeholder="Enter objection"
                   value={currentObjection}
                   onChange={(e) => setCurrentObjection(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addObjection())}
+                  onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), addObjection())}
                 />
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   onClick={addObjection}
                   disabled={formData.top_objections.length >= 3}
                 >
@@ -436,10 +483,7 @@ export default function FieldLogs() {
                 {formData.top_objections.map((obj, idx) => (
                   <Badge key={idx} variant="secondary" className="flex items-center gap-1">
                     {obj}
-                    <X 
-                      className="w-3 h-3 cursor-pointer hover:text-red-600" 
-                      onClick={() => removeObjection(idx)}
-                    />
+                    <X className="w-3 h-3 cursor-pointer hover:text-red-600" onClick={() => removeObjection(idx)} />
                   </Badge>
                 ))}
               </div>
@@ -471,12 +515,12 @@ export default function FieldLogs() {
               <Button type="button" variant="outline" onClick={() => setShowForm(false)}>
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={createMutation.isPending}
                 className="bg-gradient-to-r from-blue-600 to-blue-700"
               >
-                {createMutation.isPending ? 'Saving...' : 'Save Log'}
+                {createMutation.isPending ? "Saving..." : "Save & Earn XP"}
               </Button>
             </DialogFooter>
           </form>

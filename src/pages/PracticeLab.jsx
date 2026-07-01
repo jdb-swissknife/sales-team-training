@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { dataStore } from "@/lib/dataStore";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,32 +10,20 @@ import { format } from "date-fns";
 import ExternalAIRoleplayGuide from "../components/roleplay/ExternalAIRoleplayGuide";
 
 export default function PracticeLab() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [showAIGuide, setShowAIGuide] = useState(false);
 
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      }
-    };
-    loadUser();
-  }, []);
-
   const { data: roleplays = [] } = useQuery({
     queryKey: ['roleplays', user?.id],
-    queryFn: () => base44.entities.Roleplay.filter({ rep_id: user?.id }, '-created_date'),
+    queryFn: () => dataStore.entities.Roleplay.filter({ rep_id: user?.id }, '-created_date'),
     enabled: !!user?.id,
     initialData: []
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Roleplay.create({
+    mutationFn: (data) => dataStore.entities.Roleplay.create({
       ...data,
       rep_id: user.id,
       rep_name: user.full_name,

@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { base44 } from "@/api/base44Client";
+import { dataStore } from "@/lib/dataStore";
+import { useAuth } from "@/lib/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,7 +35,7 @@ import {
 } from "@/components/ui/select";
 
 export default function PlatformDashboard() {
-  const [user, setUser] = useState(null);
+  const { user } = useAuth();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newCompany, setNewCompany] = useState({
     name: "",
@@ -47,32 +48,20 @@ export default function PlatformDashboard() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const userData = await base44.auth.me();
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to load user:", error);
-      }
-    };
-    loadUser();
-  }, []);
-
   const { data: companies = [] } = useQuery({
     queryKey: ['companies'],
-    queryFn: () => base44.entities.Company.list('-created_date'),
+    queryFn: () => dataStore.entities.Company.list('-created_date'),
     initialData: []
   });
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsers'],
-    queryFn: () => base44.entities.User.list(),
+    queryFn: () => dataStore.entities.User.list(),
     initialData: []
   });
 
   const createCompanyMutation = useMutation({
-    mutationFn: (companyData) => base44.entities.Company.create({
+    mutationFn: (companyData) => dataStore.entities.Company.create({
       ...companyData,
       onboarded_date: new Date().toISOString().split('T')[0]
     }),
