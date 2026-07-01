@@ -13,6 +13,7 @@
 
 export const seedObjections = [
   {
+    title: "It still works fine — I'll just wait till it breaks.",
     objection_text: "It still works fine, I'll just wait till it breaks.",
     category: "Timing",
     stage: "Presentation",
@@ -34,8 +35,9 @@ export const seedObjections = [
     tags: ["preventative", "urgency", "car analogy"],
   },
   {
+    title: "I can find it cheaper somewhere else.",
     objection_text: "I can find it cheaper somewhere else.",
-    category: "Price",
+    category: "Sticker Shock",
     stage: "Close",
     rebuttal_script:
       "You absolutely can. And if you want to write a check or swipe a credit card, I can definitely get you a cheaper price too. But let me ask you something: when you buy a car, do you pay the cash price, or do you finance it and pay a little more over time? Most people finance because they'd rather keep their cash. That's exactly what this is. The question isn't whether you can find a cheaper cash price. It's whether you want to spend $15,000 today, or $200 a month.",
@@ -55,8 +57,9 @@ export const seedObjections = [
     tags: ["price", "financing", "cash vs finance"],
   },
   {
+    title: "My electric bill is already pretty low.",
     objection_text: "My electric bill is already pretty low.",
-    category: "Price",
+    category: "Trust & Skepticism",
     stage: "Presentation",
     rebuttal_script:
       "That's great, but think about it like a diesel truck. If your truck only costs $15 to fill up because it's diesel, that's awesome, but you're still only getting 10 miles to the gallon. The efficiency is still terrible. Your bill might be low, but you're still burning way more electricity than you need to. A new system would make it even lower. And we both know this system needs to be replaced regardless.",
@@ -74,8 +77,9 @@ export const seedObjections = [
     tags: ["efficiency", "utility bills", "diesel analogy"],
   },
   {
+    title: "It's too expensive — I can't afford it.",
     objection_text: "It's too expensive, I can't afford it.",
-    category: "Price",
+    category: "Sticker Shock",
     stage: "Close",
     rebuttal_script:
       "Most people can't afford $15,000 out of pocket. That's exactly why this program exists. Most homeowners are afraid of replacements because they assume it's going to cost a fortune. What we've done is made it so ownership is never more than $200-300 a month. And when you factor in the savings on your utility bills from a modern, efficient system, the real out-of-pocket cost is even lower than that.",
@@ -94,6 +98,7 @@ export const seedObjections = [
     tags: ["affordability", "monthly payment", "financing"],
   },
   {
+    title: "I need to talk to my spouse first.",
     objection_text: "I need to talk to my spouse / partner first.",
     category: "Decision Maker",
     stage: "Close",
@@ -116,8 +121,9 @@ export const seedObjections = [
     tags: ["spouse", "decision maker", "follow-up"],
   },
   {
+    title: "I don't finance things — I don't like debt.",
     objection_text: "I don't finance things. I don't like debt on my credit.",
-    category: "Price",
+    category: "Financing",
     stage: "Close",
     rebuttal_script:
       "I respect that. A lot of people feel the same way. That's actually why we have the membership option, which is a lease, not a loan. It doesn't go on your credit unless you don't pay. So you get all the benefits of a new system without taking on debt. Would you want to hear about how that works?",
@@ -135,8 +141,9 @@ export const seedObjections = [
     tags: ["financing", "lease", "credit", "membership"],
   },
   {
+    title: "The interest rate is too high — 11% is a lot.",
     objection_text: "The interest rate on the loan is too high (11%).",
-    category: "Price",
+    category: "Financing",
     stage: "Close",
     rebuttal_script:
       "I hear you. The average home improvement loan runs anywhere from 9 to 15%. That's just the reality of home improvement financing. But here's what matters: most HVAC companies spread their financing over 5 years, which means your payment is $800-1000 a month. We spread ours over a longer term so your payment is $200-300. If you want to pay it off faster and avoid the interest, you absolutely can. But the low monthly payment is what makes this doable for most families.",
@@ -155,6 +162,7 @@ export const seedObjections = [
     tags: ["interest rate", "financing", "payment term"],
   },
   {
+    title: "I already have an HVAC guy I use.",
     objection_text: "I already have an HVAC guy / company I use.",
     category: "Competition",
     stage: "Door Approach",
@@ -175,6 +183,7 @@ export const seedObjections = [
     tags: ["competition", "differentiation", "financing"],
   },
   {
+    title: "What if I'm selling the house soon?",
     objection_text: "What if I'm moving / selling the house soon?",
     category: "Timing",
     stage: "Presentation",
