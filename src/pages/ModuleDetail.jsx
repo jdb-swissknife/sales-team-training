@@ -3,9 +3,6 @@ import { dataStore } from "@/lib/dataStore";
 import { useAuth } from "@/lib/AuthContext";
 import { useSearchParams, Link } from "react-router-dom";
 import { createPageUrl } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import ReactMarkdown from "react-markdown";
 import {
   ArrowLeft,
@@ -15,9 +12,266 @@ import {
   GraduationCap,
   Zap,
   Trophy,
+  BookOpen,
+  Sparkles,
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "@/components/ui/use-toast";
+
+const T = {
+  bg: "rgba(255,255,255,0.025)",
+  bgHover: "rgba(255,255,255,0.045)",
+  border: "1px solid rgba(255,255,255,0.08)",
+  borderSoft: "1px solid rgba(255,255,255,0.05)",
+  text: "#f7f8f8",
+  textMuted: "#9aa4b2",
+  textDim: "#626b78",
+  rust: "#c2703e",
+  amber: "#fbbf24",
+  emerald: "#34d399",
+  fontStack:
+    "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  monoStack:
+    "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+};
+
+const STAGE_DOT = {
+  Orientation: "#a78bfa",
+  Prospecting: "#60a5fa",
+  Qualifying: "#22d3ee",
+  Presentation: "#34d399",
+  Close: "#fb923c",
+  "Follow-up": "#f472b6",
+};
+
+function Pill({ children, color, mono, padding = "6px 10px", gap = 6, border }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap,
+        padding,
+        borderRadius: 9999,
+        border: border || T.borderSoft,
+        background: "rgba(255,255,255,0.035)",
+        color: color || T.textMuted,
+        fontSize: 12,
+        fontWeight: mono ? 500 : 510,
+        letterSpacing: mono ? "0.04em" : "-0.005em",
+        fontFamily: mono ? T.monoStack : T.fontStack,
+        lineHeight: 1.2,
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
+const mdComponents = {
+  h1: ({ children }) => (
+    <h1
+      style={{
+        margin: "0 0 16px",
+        fontFamily: T.fontStack,
+        fontSize: 28,
+        fontWeight: 510,
+        letterSpacing: "-0.022em",
+        lineHeight: 1.15,
+        color: T.text,
+        fontFeatureSettings: '"cv01", "ss03"',
+      }}
+    >
+      {children}
+    </h1>
+  ),
+  h2: ({ children }) => (
+    <h2
+      style={{
+        margin: "32px 0 12px",
+        fontFamily: T.fontStack,
+        fontSize: 20,
+        fontWeight: 510,
+        letterSpacing: "-0.018em",
+        lineHeight: 1.25,
+        color: T.text,
+        fontFeatureSettings: '"cv01", "ss03"',
+      }}
+    >
+      {children}
+    </h2>
+  ),
+  h3: ({ children }) => (
+    <h3
+      style={{
+        margin: "24px 0 10px",
+        fontFamily: T.fontStack,
+        fontSize: 16,
+        fontWeight: 510,
+        letterSpacing: "-0.012em",
+        lineHeight: 1.3,
+        color: T.text,
+        fontFeatureSettings: '"cv01", "ss03"',
+      }}
+    >
+      {children}
+    </h3>
+  ),
+  p: ({ children }) => (
+    <p
+      style={{
+        margin: "0 0 16px",
+        fontFamily: T.fontStack,
+        fontSize: 15.5,
+        fontWeight: 400,
+        lineHeight: 1.65,
+        letterSpacing: "-0.005em",
+        color: T.textMuted,
+      }}
+    >
+      {children}
+    </p>
+  ),
+  ul: ({ children }) => (
+    <ul
+      style={{
+        margin: "0 0 18px",
+        paddingLeft: 22,
+        fontFamily: T.fontStack,
+        fontSize: 15,
+        lineHeight: 1.7,
+        color: T.textMuted,
+        listStyle: "disc outside",
+      }}
+    >
+      {children}
+    </ul>
+  ),
+  ol: ({ children }) => (
+    <ol
+      style={{
+        margin: "0 0 18px",
+        paddingLeft: 22,
+        fontFamily: T.fontStack,
+        fontSize: 15,
+        lineHeight: 1.7,
+        color: T.textMuted,
+        listStyle: "decimal outside",
+      }}
+    >
+      {children}
+    </ol>
+  ),
+  li: ({ children }) => (
+    <li style={{ marginBottom: 6, paddingLeft: 4 }}>{children}</li>
+  ),
+  strong: ({ children }) => (
+    <strong style={{ color: T.text, fontWeight: 600 }}>{children}</strong>
+  ),
+  em: ({ children }) => (
+    <em style={{ color: T.text, fontStyle: "italic" }}>{children}</em>
+  ),
+  blockquote: ({ children }) => (
+    <blockquote
+      style={{
+        margin: "20px 0",
+        padding: "12px 16px",
+        borderLeft: `2px solid ${T.amber}`,
+        borderRadius: "0 8px 8px 0",
+        background: "rgba(251,191,36,0.06)",
+        color: T.text,
+        fontStyle: "italic",
+        fontSize: 15,
+        lineHeight: 1.6,
+      }}
+    >
+      {children}
+    </blockquote>
+  ),
+  code: ({ children, inline }) =>
+    inline ? (
+      <code
+        style={{
+          padding: "2px 6px",
+          borderRadius: 4,
+          background: "rgba(255,255,255,0.07)",
+          border: T.borderSoft,
+          fontFamily: T.monoStack,
+          fontSize: 13,
+          color: "#fde68a",
+        }}
+      >
+        {children}
+      </code>
+    ) : (
+      <code
+        style={{
+          display: "block",
+          padding: 14,
+          borderRadius: 10,
+          background: "rgba(255,255,255,0.025)",
+          border: T.borderSoft,
+          fontFamily: T.monoStack,
+          fontSize: 13,
+          color: T.text,
+          overflowX: "auto",
+        }}
+      >
+        {children}
+      </code>
+    ),
+  hr: () => (
+    <hr
+      style={{
+        margin: "32px 0",
+        height: 1,
+        border: "none",
+        background: "rgba(255,255,255,0.06)",
+      }}
+    />
+  ),
+  table: ({ children }) => (
+    <div style={{ overflowX: "auto", margin: "20px 0" }}>
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontFamily: T.fontStack,
+          fontSize: 14,
+          color: T.textMuted,
+        }}
+      >
+        {children}
+      </table>
+    </div>
+  ),
+  th: ({ children }) => (
+    <th
+      style={{
+        textAlign: "left",
+        padding: "10px 12px",
+        borderBottom: T.border,
+        color: T.text,
+        fontWeight: 510,
+        fontSize: 13,
+      }}
+    >
+      {children}
+    </th>
+  ),
+  td: ({ children }) => (
+    <td
+      style={{
+        padding: "10px 12px",
+        borderBottom: T.borderSoft,
+        color: T.textMuted,
+      }}
+    >
+      {children}
+    </td>
+  ),
+};
 
 export default function ModuleDetail() {
   const [searchParams] = useSearchParams();
@@ -25,200 +279,353 @@ export default function ModuleDetail() {
   const { user, awardXP } = useAuth();
   const [completed, setCompleted] = useState(false);
 
-  const { data: module } = useQuery({
+  const { data: module, isLoading } = useQuery({
     queryKey: ["module", moduleId],
     queryFn: () => dataStore.entities.TrainingModule.getById(moduleId),
     enabled: !!moduleId,
   });
 
-  if (!module) {
+  if (isLoading) {
     return (
-      <div className="p-8 text-center">
-        <p className="text-slate-500">Loading module...</p>
+      <div style={{ padding: "60px 24px", textAlign: "center", color: T.textDim, fontFamily: T.monoStack, fontSize: 12 }}>
+        Loading module…
       </div>
     );
   }
 
-  const difficultyColors = {
-    Intro: "bg-green-100 text-green-700 border-green-200",
-    Intermediate: "bg-yellow-100 text-yellow-700 border-yellow-200",
-    Master: "bg-red-100 text-red-700 border-red-200",
-  };
+  if (!module) {
+    return (
+      <div style={{ padding: "60px 24px", textAlign: "center", color: T.textMuted }}>
+        Module not found.
+      </div>
+    );
+  }
+
+  const stageColor = STAGE_DOT[module.stage] || "#9aa4b2";
+  const objectives = module.learning_objectives || [];
 
   const handleComplete = async () => {
     const xp = 50;
     const result = await awardXP(xp, "module completion");
     setCompleted(true);
-
     if (result.leveledUp) {
       toast({
-        title: `LEVEL UP! You're now Level ${result.newLevel}! `,
+        title: `LEVEL UP! You're now Level ${result.newLevel}!`,
         description: `Completed "${module.title}" and earned ${xp} XP!`,
       });
     } else {
       toast({
-        title: `+${xp} XP earned! `,
+        title: `+${xp} XP earned!`,
         description: `"${module.title}" marked as complete.`,
       });
     }
   };
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6">
-      {/* Back button */}
-      <Link to={createPageUrl("TrainingModules")}>
-        <Button variant="ghost" className="text-slate-600 hover:text-slate-900">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Training
-        </Button>
-      </Link>
-
-      {/* Module header */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {module.difficulty && (
-            <Badge className={difficultyColors[module.difficulty]}>
-              {module.difficulty}
-            </Badge>
-          )}
-          {module.stage && (
-            <Badge variant="outline">{module.stage}</Badge>
-          )}
-          {module.is_required && (
-            <Badge variant="outline" className="border-orange-300 text-orange-700">
-              Required
-            </Badge>
-          )}
-          {module.estimated_minutes && (
-            <Badge variant="secondary">
-              <Clock className="w-3 h-3 mr-1" />
-              {module.estimated_minutes} min
-            </Badge>
-          )}
-        </div>
-        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900">
-          {module.title}
-        </h1>
-        <p className="text-slate-600 text-lg">{module.description}</p>
+    <div
+      style={{
+        maxWidth: 880,
+        margin: "0 auto",
+        padding: "28px 24px 80px",
+        fontFamily: T.fontStack,
+        color: T.text,
+      }}
+    >
+      {/* Top nav */}
+      <div style={{ marginBottom: 28 }}>
+        <Link
+          to={createPageUrl("TrainingModules")}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "7px 12px",
+            borderRadius: 8,
+            border: T.borderSoft,
+            background: "rgba(255,255,255,0.025)",
+            color: T.textMuted,
+            fontFamily: T.fontStack,
+            fontSize: 13,
+            fontWeight: 510,
+            textDecoration: "none",
+            transition: "all 180ms ease",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.color = T.text)}
+          onMouseLeave={(e) => (e.currentTarget.style.color = T.textMuted)}
+        >
+          <ArrowLeft size={14} /> Back to Training
+        </Link>
       </div>
 
+      {/* Header card */}
+      <header
+        style={{
+          position: "relative",
+          padding: "28px 28px 24px",
+          borderRadius: 16,
+          background: "linear-gradient(180deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02))",
+          border: T.border,
+          boxShadow:
+            "inset 0 1px 0 rgba(255,255,255,0.05), 0 18px 60px rgba(0,0,0,0.22)",
+          marginBottom: 24,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 2,
+            background: `linear-gradient(90deg, ${stageColor}, transparent 70%)`,
+          }}
+        />
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+          {module.stage && (
+            <Pill padding="5px 10px" gap={6}>
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: stageColor,
+                  boxShadow: `0 0 8px ${stageColor}88`,
+                }}
+              />
+              {module.stage}
+            </Pill>
+          )}
+          {module.difficulty && (
+            <Pill padding="5px 10px" color={T.text}>
+              {module.difficulty}
+            </Pill>
+          )}
+          {module.estimated_minutes && (
+            <Pill mono padding="5px 10px" gap={6}>
+              <Clock size={11} /> {module.estimated_minutes} min
+            </Pill>
+          )}
+          {module.is_required && (
+            <Pill padding="5px 10px" color={T.rust} border="1px solid rgba(194,112,62,0.4)">
+              <Sparkles size={11} style={{ color: T.amber }} /> Required
+            </Pill>
+          )}
+        </div>
+        <h1
+          style={{
+            margin: "0 0 10px",
+            fontSize: 36,
+            fontWeight: 510,
+            letterSpacing: "-0.028em",
+            lineHeight: 1.05,
+            color: T.text,
+            fontFeatureSettings: '"cv01", "ss03"',
+          }}
+        >
+          {module.title}
+        </h1>
+        {module.description && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 16,
+              lineHeight: 1.55,
+              color: T.textMuted,
+              letterSpacing: "-0.005em",
+            }}
+          >
+            {module.description}
+          </p>
+        )}
+      </header>
+
       {/* Learning objectives */}
-      {module.learning_objectives && module.learning_objectives.length > 0 && (
-        <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-purple-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-2 mb-3">
-              <Target className="w-5 h-5 text-blue-600" />
-              <h3 className="font-bold text-slate-900">What You'll Learn</h3>
-            </div>
-            <ul className="space-y-2">
-              {module.learning_objectives.map((obj, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                  <CheckCircle2 className="w-4 h-4 mt-0.5 text-green-600 flex-shrink-0" />
-                  <span>{obj}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+      {objectives.length > 0 && (
+        <section
+          style={{
+            padding: "20px 22px",
+            borderRadius: 14,
+            border: T.border,
+            background: "rgba(194,112,62,0.06)",
+            marginBottom: 20,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+            <Target size={15} style={{ color: T.rust }} />
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 14,
+                fontWeight: 510,
+                color: T.text,
+                letterSpacing: "-0.005em",
+                fontFamily: T.fontStack,
+              }}
+            >
+              What you'll learn
+            </h2>
+          </div>
+          <ul
+            style={{
+              margin: 0,
+              padding: 0,
+              listStyle: "none",
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 8,
+            }}
+          >
+            {objectives.map((obj, i) => (
+              <li
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 8,
+                  fontSize: 13.5,
+                  lineHeight: 1.5,
+                  color: T.textMuted,
+                }}
+              >
+                <CheckCircle2 size={14} style={{ color: T.emerald, flexShrink: 0, marginTop: 2 }} />
+                <span>{obj}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {/* Content */}
       {module.content ? (
-        <Card className="border-0 shadow-md">
-          <CardContent className="pt-6">
-            <div className="prose prose-slate max-w-none">
-              <ReactMarkdown
-                components={{
-                  h1: ({ node, ...props }) => (
-                    <h1 className="text-2xl font-bold text-slate-900 mt-6 mb-3" {...props} />
-                  ),
-                  h2: ({ node, ...props }) => (
-                    <h2 className="text-xl font-bold text-slate-900 mt-5 mb-2" {...props} />
-                  ),
-                  h3: ({ node, ...props }) => (
-                    <h3 className="text-lg font-semibold text-slate-800 mt-4 mb-2" {...props} />
-                  ),
-                  p: ({ node, ...props }) => (
-                    <p className="text-slate-700 leading-relaxed mb-3" {...props} />
-                  ),
-                  ul: ({ node, ...props }) => (
-                    <ul className="list-disc pl-5 space-y-1 mb-3 text-slate-700" {...props} />
-                  ),
-                  ol: ({ node, ...props }) => (
-                    <ol className="list-decimal pl-5 space-y-1 mb-3 text-slate-700" {...props} />
-                  ),
-                  strong: ({ node, ...props }) => (
-                    <strong className="font-bold text-slate-900" {...props} />
-                  ),
-                  blockquote: ({ node, ...props }) => (
-                    <blockquote
-                      className="border-l-4 border-amber-400 pl-4 py-2 my-4 bg-amber-50 rounded-r-lg text-slate-700 italic"
-                      {...props}
-                    />
-                  ),
-                  table: ({ node, ...props }) => (
-                    <div className="overflow-x-auto my-4">
-                      <table className="min-w-full border border-slate-200 rounded-lg" {...props} />
-                    </div>
-                  ),
-                  th: ({ node, ...props }) => (
-                    <th className="border border-slate-200 px-3 py-2 bg-slate-50 font-bold text-slate-900 text-sm" {...props} />
-                  ),
-                  td: ({ node, ...props }) => (
-                    <td className="border border-slate-200 px-3 py-2 text-sm text-slate-700" {...props} />
-                  ),
-                }}
-              >
-                {module.content}
-              </ReactMarkdown>
-            </div>
-          </CardContent>
-        </Card>
+        <article
+          style={{
+            padding: "32px 32px",
+            borderRadius: 14,
+            border: T.border,
+            background: T.bg,
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.04), 0 18px 60px rgba(0,0,0,0.18)",
+            backdropFilter: "blur(10px)",
+          }}
+        >
+          <ReactMarkdown components={mdComponents}>{module.content}</ReactMarkdown>
+        </article>
       ) : (
-        <Card className="border-0 shadow-md">
-          <CardContent className="pt-6">
-            <p className="text-slate-500 text-center py-8">
-              Content coming soon for this module.
-            </p>
-          </CardContent>
-        </Card>
+        <div
+          style={{
+            padding: "60px 24px",
+            borderRadius: 14,
+            border: T.borderSoft,
+            background: T.bg,
+            textAlign: "center",
+            color: T.textMuted,
+            fontFamily: T.monoStack,
+            fontSize: 12,
+          }}
+        >
+          Content coming soon for this module.
+        </div>
       )}
 
-      {/* Certification info */}
+      {/* Certification */}
       {module.certification_level && (
-        <div className="flex items-center gap-2 text-sm text-slate-600">
-          <GraduationCap className="w-4 h-4 text-purple-600" />
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "12px 14px",
+            borderRadius: 10,
+            border: T.borderSoft,
+            background: "rgba(255,255,255,0.02)",
+            marginTop: 24,
+            fontSize: 13,
+            color: T.textMuted,
+          }}
+        >
+          <GraduationCap size={15} style={{ color: "#c084fc" }} />
           <span>
             Required for{" "}
-            <span className="font-semibold text-purple-600">
-              {module.certification_level}
-            </span>{" "}
+            <span style={{ color: T.text, fontWeight: 510 }}>{module.certification_level}</span>{" "}
             certification
           </span>
         </div>
       )}
 
       {/* Complete button */}
-      <div className="pt-4 pb-8">
+      <div style={{ marginTop: 32 }}>
         {completed ? (
-          <div className="flex items-center justify-center gap-3 p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl border border-green-200">
-            <Trophy className="w-8 h-8 text-green-600" />
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              padding: "20px 22px",
+              borderRadius: 14,
+              border: "1px solid rgba(52,211,153,0.35)",
+              background:
+                "linear-gradient(135deg, rgba(52,211,153,0.12), rgba(16,185,129,0.06))",
+            }}
+          >
+            <Trophy size={28} style={{ color: T.emerald }} />
             <div>
-              <p className="font-bold text-green-700 text-lg">Module Complete!</p>
-              <p className="text-sm text-slate-600">
-                You earned 50 XP. Keep up the great work!
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 17,
+                  fontWeight: 510,
+                  color: T.text,
+                  letterSpacing: "-0.01em",
+                }}
+              >
+                Module complete!
+              </p>
+              <p style={{ margin: "2px 0 0", fontSize: 13, color: T.textMuted }}>
+                You earned 50 XP. Keep the streak going.
               </p>
             </div>
           </div>
         ) : (
-          <Button
+          <button
+            type="button"
             onClick={handleComplete}
-            size="lg"
-            className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold shadow-lg shadow-orange-500/20"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 10,
+              width: "100%",
+              padding: "16px 24px",
+              borderRadius: 12,
+              border: "1px solid rgba(251,146,60,0.5)",
+              background:
+                "linear-gradient(135deg, #fb923c 0%, #ea580c 60%, #c2410c 100%)",
+              color: "#fff",
+              fontFamily: T.fontStack,
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: "-0.005em",
+              cursor: "pointer",
+              boxShadow:
+                "0 18px 50px rgba(251,146,60,0.30), inset 0 1px 0 rgba(255,255,255,0.18)",
+              transition: "transform 160ms ease, box-shadow 160ms ease",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-1px)";
+              e.currentTarget.style.boxShadow =
+                "0 22px 60px rgba(251,146,60,0.40), inset 0 1px 0 rgba(255,255,255,0.22)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow =
+                "0 18px 50px rgba(251,146,60,0.30), inset 0 1px 0 rgba(255,255,255,0.18)";
+            }}
           >
-            <Zap className="w-5 h-5 mr-2" />
-            Mark Complete & Earn 50 XP
-          </Button>
+            <Zap size={18} />
+            Mark complete & earn 50 XP
+          </button>
         )}
       </div>
     </div>
