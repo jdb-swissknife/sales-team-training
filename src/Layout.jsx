@@ -5,11 +5,8 @@ import { useAuth } from "@/lib/AuthContext";
 import {
   LayoutDashboard,
   BookOpen,
-  Clipboard,
+  ClipboardList,
   MessageSquare,
-  Award,
-  Users,
-  BarChart3,
   Library,
   Flame,
   LogOut,
@@ -35,15 +32,11 @@ import {
 } from "@/components/ui/sidebar";
 
 const ALL_NAV_ITEMS = [
-  { title: "Command", url: createPageUrl("Dashboard"), icon: LayoutDashboard, roles: ["rep", "coach", "admin"] },
-  { title: "Training", url: createPageUrl("TrainingModules"), icon: BookOpen, roles: ["rep", "coach", "admin"] },
-  { title: "Field Logs", url: createPageUrl("FieldLogs"), icon: Clipboard, roles: ["rep", "coach", "admin"] },
-  { title: "Practice Lab", url: createPageUrl("PracticeLab"), icon: MessageSquare, roles: ["rep", "coach", "admin"] },
-  { title: "Objections", url: createPageUrl("ObjectionLibrary"), icon: Library, roles: ["rep", "coach", "admin"] },
-  { title: "Progress", url: createPageUrl("MyProgress"), icon: Award, roles: ["rep"] },
-  { title: "Coach Review", url: createPageUrl("CoachReview"), icon: Users, roles: ["coach", "admin"] },
-  { title: "Analytics", url: createPageUrl("Analytics"), icon: BarChart3, roles: ["coach", "admin"] },
-  { title: "Users", url: createPageUrl("AdminUsers"), icon: Users, roles: ["admin"] },
+  { title: "Command", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
+  { title: "Training", url: createPageUrl("TrainingModules"), icon: BookOpen },
+  { title: "Debrief", url: createPageUrl("VisitDebrief"), icon: ClipboardList },
+  { title: "Practice", url: createPageUrl("PracticeLab"), icon: MessageSquare },
+  { title: "Objections", url: createPageUrl("ObjectionLibrary"), icon: Library },
 ];
 
 function XpBar({ xp, level }) {
@@ -77,8 +70,8 @@ function LayoutContent({ children }) {
     setOpenMobile(false);
   }, [location.pathname, setOpenMobile]);
 
-  const userRole = user?.role || "rep";
-  const navItems = ALL_NAV_ITEMS.filter((item) => item.roles.includes(userRole));
+  const userRole = "rep";
+  const navItems = ALL_NAV_ITEMS;
   const xp = user?.xp || 0;
   const level = user?.level || 1;
   const streak = user?.streak_days || 0;

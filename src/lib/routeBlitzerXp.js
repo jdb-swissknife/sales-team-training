@@ -32,3 +32,17 @@ export async function fetchRouteBlitzerXpSummary({ apiBase, repName, days = 30 }
 
   return res.json();
 }
+
+export async function fetchRouteBlitzerVisits({ apiBase, repName, days = 30 }) {
+  if (!repName) return { visits: [] };
+
+  const url = `${apiBase}/coach/visits?repName=${encodeURIComponent(repName)}&days=${days}`;
+  const res = await fetch(url, { headers: { Accept: "application/json" } });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "Unknown error");
+    throw new Error(`${res.status}: ${text}`);
+  }
+
+  return res.json();
+}

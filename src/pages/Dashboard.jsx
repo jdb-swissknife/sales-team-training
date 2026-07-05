@@ -8,7 +8,7 @@ import {
   Target,
   Calendar,
   BookOpen,
-  Clipboard,
+  ClipboardList,
   MessageSquare,
   Flame,
   Zap,
@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   Sparkles,
   Activity,
+  DoorOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getRouteBlitzerContext, fetchRouteBlitzerXpSummary } from "@/lib/routeBlitzerXp";
@@ -30,6 +31,7 @@ function StatTile({ icon: Icon, label, value, sub, accent = "amber" }) {
     blue: "text-sky-300 bg-sky-300/10 border-sky-300/15",
     green: "text-emerald-300 bg-emerald-300/10 border-emerald-300/15",
     violet: "text-violet-300 bg-violet-300/10 border-violet-300/15",
+    rose: "text-rose-300 bg-rose-300/10 border-rose-300/15",
   };
 
   return (
@@ -52,6 +54,7 @@ function ActionCard({ to, icon: Icon, title, desc, tone }) {
     amber: "from-amber-300/22 via-orange-500/10 to-transparent text-amber-200",
     blue: "from-sky-300/18 via-indigo-500/10 to-transparent text-sky-200",
     violet: "from-violet-300/18 via-fuchsia-500/10 to-transparent text-violet-200",
+    rose: "from-rose-300/18 via-orange-500/10 to-transparent text-rose-200",
   };
 
   return (
@@ -78,21 +81,9 @@ function ActionCard({ to, icon: Icon, title, desc, tone }) {
 export default function Dashboard() {
   const { user, updateUser } = useAuth();
 
-  const { data: fieldLogs = [] } = useQuery({
-    queryKey: ["fieldLogs", user?.id],
-    queryFn: () => dataStore.entities.FieldLog.filter({ rep_id: user?.id }, "-date", 30),
-    enabled: !!user?.id,
-  });
-
   const { data: roleplays = [] } = useQuery({
     queryKey: ["roleplays", user?.id],
     queryFn: () => dataStore.entities.Roleplay.filter({ rep_id: user?.id }, "-created_date", 10),
-    enabled: !!user?.id,
-  });
-
-  const { data: modules = [] } = useQuery({
-    queryKey: ["trainingModules"],
-    queryFn: () => dataStore.entities.TrainingModule.list("order"),
     enabled: !!user?.id,
   });
 
@@ -105,30 +96,21 @@ export default function Dashboard() {
     retry: 1,
   });
 
-  const last30Days = fieldLogs.filter((log) => {
-    const d = new Date(log.date);
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 30);
-    return d >= cutoff;
-  });
-
   useEffect(() => {
     if (!rbXp) return;
     if (user?.xp === rbXp.xp && user?.level === rbXp.level && user?.streak_days === rbXp.streakDays) return;
     updateUser({ xp: rbXp.xp, level: rbXp.level, streak_days: rbXp.streakDays });
   }, [rbXp?.xp, rbXp?.level, rbXp?.streakDays]);
 
-  const localDoors = last30Days.reduce((s, l) => s + (l.doors_knocked || 0), 0);
-  const localConversations = last30Days.reduce((s, l) => s + (l.conversations || 0), 0);
-  const localAppointments = last30Days.reduce((s, l) => s + (l.appointments_set || 0), 0);
-  const localClosures = last30Days.reduce((s, l) => s + (l.closures || 0), 0);
+  const totalDoors = rbXp?.stats?.totalVisits ?? 0;
+  const totalConversations = rbXp?.stats?.conversations ?? 0;
+  const totalAppointments = rbXp?.stats?.callbacks ?? 0;
+  const totalClosures = rbXp?.stats?.books ?? 0;
+  const convRate = rbXp?.stats?.contactRate?.toFixed?.(1) ?? "0.0";
+  const closeRate = rbXp?.stats?.bookRate?.toFixed?.(1) ?? "0.0";
 
-  const totalDoors = rbXp?.stats?.totalVisits ?? localDoors;
-  const totalConversations = rbXp?.stats?.conversations ?? localConversations;
-  const totalAppointments = rbXp?.stats?.callbacks ?? localAppointments;
-  const totalClosures = rbXp?.stats?.books ?? localClosures;
-  const convRate = rbXp?.stats?.contactRate?.toFixed?.(1) ?? (totalDoors > 0 ? ((totalConversations / totalDoors) * 100).toFixed(1) : "0.0");
-  const closeRate = rbXp?.stats?.bookRate?.toFixed?.(1) ?? (totalAppointments > 0 ? ((totalClosures / totalAppointments) * 100).toFixed(1) : "0.0");
+  // Doors since last booking -- training metric
+  const doorsSinceBooking = totalClosures > 0 ? Math.max(0, totalDoors - totalClosures) : totalDoors;
 
   const xp = rbXp?.xp ?? user?.xp ?? 0;
   const level = rbXp?.level ?? user?.level ?? 1;
@@ -160,10 +142,11 @@ export default function Dashboard() {
             <div>
               <p className="mv-kicker mb-3 text-xs">{greeting}, {firstName}</p>
               <h1 className="max-w-3xl text-4xl font-semibold leading-[0.95] tracking-[-0.055em] text-white md:text-6xl">
-                Build momentum before the next door.
+                Sharpen the edge between doors.
               </h1>
               <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-400">
-                Track the reps, sharpen the script, and keep the day moving. The goal is simple: more quality conversations, more booked appointments, more confidence.
+                Every door is a rep. Review your visits, practice the tough objections, and track the
+                metrics that actually predict bookings.
               </p>
             </div>
           </div>
@@ -181,7 +164,7 @@ export default function Dashboard() {
             <div className="flex items-end justify-between">
               <div>
                 <div className="font-mono text-xs uppercase tracking-[0.16em] text-amber-200">Level {level}</div>
-                <div className="mt-1 text-4xl font-semibold tracking-[-0.05em] text-white">{xp} XP</div>
+                <div className="mt-1 text-4xl font-semibold tracking-[-0.06em] text-white">{xp} XP</div>
               </div>
               <div className="text-right">
                 <div className="text-2xl font-semibold text-white">{100 - xpInLevel}</div>
@@ -198,28 +181,33 @@ export default function Dashboard() {
         </div>
       </section>
 
+      {/* Action cards -- Debrief replaces Field Logs */}
       <section className="grid gap-4 md:grid-cols-3">
-        <ActionCard to={createPageUrl("FieldLogs")} icon={Clipboard} title="Log Field Activity" desc="Turn today’s doors, conversations, and bookings into visible progress." tone="blue" />
+        <ActionCard to={createPageUrl("VisitDebrief")} icon={ClipboardList} title="Debrief Your Visits" desc="Review every door from today. Capture what worked, what to fix, and spot patterns." tone="rose" />
         <ActionCard to={createPageUrl("PracticeLab")} icon={MessageSquare} title="Practice Lab" desc="Run the hard objections before they happen in the neighborhood." tone="amber" />
         <ActionCard to={createPageUrl("TrainingModules")} icon={BookOpen} title="Training Modules" desc="Short lessons, proven patterns, and scripts reps can actually use." tone="violet" />
       </section>
 
+      {/* Training-oriented stat tiles */}
       <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatTile icon={Target} label="Doors knocked" value={totalDoors} sub={`${convRate}% conversation rate`} accent="blue" />
-        <StatTile icon={MessageSquare} label="Conversations" value={totalConversations} sub="Quality reps create volume" accent="amber" />
-        <StatTile icon={Calendar} label="Appointments" value={totalAppointments} sub={`${closeRate}% close from appointments`} accent="green" />
-        <StatTile icon={CheckCircle2} label="Booked" value={totalClosures} sub="Wins logged in the field" accent="violet" />
+        <StatTile icon={DoorOpen} label="Doors knocked" value={totalDoors} sub={`${convRate}% contact rate`} accent="blue" />
+        <StatTile icon={MessageSquare} label="Conversations" value={totalConversations} sub="Quality contacts that build pipeline" accent="amber" />
+        <StatTile icon={Target} label="Booked" value={totalClosures} sub={`${closeRate}% booking rate`} accent="green" />
+        <StatTile icon={Flame} label="Doors since booking" value={doorsSinceBooking} sub="Lower is better -- stay sharp" accent={doorsSinceBooking > 20 ? "rose" : "violet"} />
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[1.05fr_.95fr]">
+        {/* Recent XP events from RB */}
         <div className="mv-card rounded-[2rem] p-5 md:p-6">
           <div className="mb-5 flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold tracking-tight text-white">{rbXp ? "Recent XP Events" : "Recent Field Logs"}</h2>
-              <p className="mt-1 text-sm text-slate-500">{rbXp ? "Automatically generated from Route Blitzer." : "Daily reps, not vague progress."}</p>
+              <h2 className="text-xl font-semibold tracking-tight text-white">Recent Activity</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                {rbXp ? "Automatically synced from Route Blitzer." : "Connect Route Blitzer to see live field activity."}
+              </p>
             </div>
-            <Link to={createPageUrl("FieldLogs")}>
-              <Button variant="ghost" size="sm" className="mv-button-ghost rounded-xl">View all</Button>
+            <Link to={createPageUrl("VisitDebrief")}>
+              <Button variant="ghost" size="sm" className="mv-button-ghost rounded-xl">Debrief</Button>
             </Link>
           </div>
 
@@ -239,53 +227,38 @@ export default function Dashboard() {
                 </div>
               ))
             ) : (
-              <>
-                {fieldLogs.slice(0, 5).map((log) => (
-                  <div key={log.id} className="rounded-2xl border border-white/10 bg-white/[0.035] p-4 transition-colors hover:bg-white/[0.055]">
-                    <div className="flex items-center justify-between gap-4">
-                      <div>
-                        <div className="font-semibold text-white">{format(new Date(log.date), "MMM d")}</div>
-                        <div className="mt-1 text-xs text-slate-500">{log.neighborhood || "No neighborhood noted"}</div>
-                      </div>
-                      <div className="grid grid-cols-3 gap-4 text-center">
-                        <div><div className="font-mono text-lg text-white">{log.doors_knocked || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">doors</div></div>
-                        <div><div className="font-mono text-lg text-sky-300">{log.conversations || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">talks</div></div>
-                        <div><div className="font-mono text-lg text-emerald-300">{log.closures || 0}</div><div className="text-[10px] uppercase tracking-wider text-slate-600">booked</div></div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {fieldLogs.length === 0 && (
-                  <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.025] p-10 text-center">
-                    <Clipboard className="mx-auto mb-3 h-10 w-10 text-slate-600" />
-                    <p className="font-semibold text-white">No logs yet</p>
-                    <p className="mt-1 text-sm text-slate-500">{rbXp ? "Route Blitzer is connected, but this rep has no recent XP events yet." : "Log the first field day to start building the scoreboard."}</p>
-                  </div>
-                )}
-              </>
+              <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.025] p-10 text-center">
+                <DoorOpen className="mx-auto mb-3 h-10 w-10 text-slate-600" />
+                <p className="font-semibold text-white">No activity yet</p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {rbXp ? "Route Blitzer is connected, but no recent visits found." : "Log visits in Route Blitzer to populate your training dashboard."}
+                </p>
+              </div>
             )}
           </div>
         </div>
 
         <div className="space-y-6">
+          {/* Today's Focus */}
           <div className="mv-card rounded-[2rem] p-5 md:p-6">
             <div className="mb-5 flex items-center gap-3">
               <div className="rounded-2xl border border-amber-300/15 bg-amber-300/10 p-3 text-amber-200">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-xl font-semibold tracking-tight text-white">Today’s Focus</h2>
+                <h2 className="text-xl font-semibold tracking-tight text-white">Today's Focus</h2>
                 <p className="text-sm text-slate-500">One simple principle.</p>
               </div>
             </div>
             <blockquote className="text-xl leading-8 tracking-[-0.02em] text-slate-200">
-              “The inspection sells. The kitchen table only confirms what the homeowner already saw.”
+              "The inspection sells. The kitchen table only confirms what the homeowner already saw."
             </blockquote>
             <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-6 text-slate-400">
               Slow down at the unit. Document visible problems. Make the issue real before talking about payment.
             </div>
           </div>
 
+          {/* Badges */}
           <div className="mv-card rounded-[2rem] p-5 md:p-6">
             <div className="mb-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold tracking-tight text-white">Badges</h2>
