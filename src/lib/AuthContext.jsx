@@ -20,7 +20,18 @@ export function AuthProvider({ children }) {
 
       // Load user
       try {
-        const u = await dataStore.auth.me();
+        let u = await dataStore.auth.me();
+
+        // Sync identity from Route Blitzer when launched via the Coach button.
+        // The URL always carries the logged-in rep's name, so overwrite any
+        // stale cached identity to keep the Coach UI in sync.
+        const params = new URLSearchParams(window.location.search);
+        const rbRepName = params.get("repName");
+        const rbSource = params.get("source");
+        if (rbSource === "route-blitzer" && rbRepName && u?.full_name !== rbRepName) {
+          u = await dataStore.auth.updateUser({ full_name: rbRepName });
+        }
+
         setUser(u);
         setIsOnboarded(!!u.full_name);
       } catch (e) {
